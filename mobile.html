@@ -34,8 +34,6 @@
             --text-light: #666666;
             --success: #10B981;
             --shadow: 0 4px 12px rgba(0,0,0,0.1);
-            --safe-area-top: env(safe-area-inset-top);
-            --safe-area-bottom: env(safe-area-inset-bottom);
         }
 
         body {
@@ -43,8 +41,6 @@
             background: #f8f9fa;
             color: var(--text-dark);
             overflow-x: hidden;
-            padding-top: var(--safe-area-top);
-            padding-bottom: var(--safe-area-bottom);
         }
 
         /* App Container */
@@ -488,7 +484,7 @@
         /* Notifications */
         .notification {
             position: fixed;
-            top: 2rem;
+            top: 80px;
             left: 1rem;
             right: 1rem;
             background: var(--palm-green);
@@ -503,36 +499,6 @@
 
         .notification.show {
             transform: translateY(0);
-        }
-
-        /* Loading States */
-        .loading {
-            text-align: center;
-            padding: 2rem;
-            color: var(--text-light);
-        }
-
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid #e9ecef;
-            border-top: 4px solid var(--palm-green);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 1rem;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Pull to Refresh */
-        .pull-refresh {
-            text-align: center;
-            padding: 1rem;
-            color: var(--text-light);
-            font-size: 0.9rem;
         }
 
         /* Empty State */
@@ -556,6 +522,7 @@
         .empty-text {
             color: var(--text-light);
             margin-bottom: 2rem;
+            line-height: 1.5;
         }
 
         .btn-get-passes {
@@ -583,11 +550,6 @@
                 </div>
             </div>
         </header>
-
-        <!-- Pull to Refresh -->
-        <div class="pull-refresh" id="pullRefresh" style="display: none;">
-            Pull down to refresh...
-        </div>
 
         <!-- Main Content -->
         <main class="main-content">
@@ -731,7 +693,6 @@
         </div>
     </div>
 
-    <!-- Service Worker Registration -->
     <script>
         // PWA Service Worker Registration
         if ('serviceWorker' in navigator) {
@@ -753,11 +714,10 @@
 
         // Initialize App
         window.addEventListener('load', function() {
-            console.log('Mobile app loading...');
+            console.log('✅ MOBILE APP LOADING...');
             initializeApp();
             loadPasses();
             requestLocation();
-            setupPullToRefresh();
         });
 
         function initializeApp() {
@@ -776,6 +736,8 @@
                 }
                 lastTouchEnd = now;
             }, false);
+
+            console.log('✅ MOBILE APP INITIALIZED');
         }
 
         function loadPasses() {
@@ -861,7 +823,6 @@
         function showQR(passId) {
             console.log('Showing QR for pass:', passId);
             
-            // Find the pass
             const pass = userPasses.find(p => p.id === passId) || userPasses[0];
             
             if (!pass) {
@@ -884,28 +845,14 @@
             // Generate QR code (placeholder)
             const qrContainer = document.getElementById('qrCodeLarge');
             generateQRCode(qrContainer, passId);
-            
-            // Track usage
-            trackPassUsage(passId);
-            
-            // Auto-brightness
-            if ('screen' in navigator && 'brightness' in navigator.screen) {
-                navigator.screen.brightness = 1.0;
-            }
         }
 
         function closeQR() {
             document.getElementById('qrModal').classList.remove('active');
-            
-            // Reset brightness
-            if ('screen' in navigator && 'brightness' in navigator.screen) {
-                navigator.screen.brightness = 0.8;
-            }
         }
 
         function generateQRCode(container, passId) {
-            // In production, use a proper QR code library
-            // For demo, create a visual QR pattern
+            // Create visual QR pattern for demo
             container.innerHTML = '';
             const canvas = document.createElement('canvas');
             canvas.width = 250;
@@ -934,7 +881,6 @@
         }
 
         function adjustBrightness(direction) {
-            // Simulate brightness adjustment
             const qrCode = document.getElementById('qrCodeLarge');
             if (direction === 'up') {
                 qrCode.style.filter = 'brightness(1.2)';
@@ -963,22 +909,6 @@
             if (navigator.vibrate) {
                 navigator.vibrate(30);
             }
-            
-            // Handle different tabs
-            switch(tab) {
-                case 'passes':
-                    viewAllPasses();
-                    break;
-                case 'map':
-                    findAttractions();
-                    break;
-                case 'account':
-                    showProfile();
-                    break;
-                default:
-                    // Stay on home
-                    break;
-            }
         }
 
         function showQRScanner() {
@@ -990,9 +920,6 @@
         }
 
         function findAttractions() {
-            if (!currentLocation) {
-                requestLocation();
-            }
             showNotification('Finding attractions near you...');
         }
 
@@ -1014,10 +941,6 @@
         }
 
         function viewAllPasses() {
-            if (userPasses.length === 0) {
-                showNotification('No passes to view');
-                return;
-            }
             showNotification('Viewing all passes...');
         }
 
@@ -1036,7 +959,7 @@
             } else {
                 showNotification('Please sign in to view profile');
                 setTimeout(() => {
-                    window.location.href = './index.html';
+                    window.location.href = './mobile-purchase.html';
                 }, 2000);
             }
         }
@@ -1052,57 +975,10 @@
                     (position) => {
                         currentLocation = position.coords;
                         console.log('Location updated:', currentLocation);
-                        showNotification('Location updated');
                     },
-                    () => showNotification('Enable location for nearby attractions')
+                    () => console.log('Location access denied')
                 );
             }
-        }
-
-        function setupPullToRefresh() {
-            let startY = 0;
-            let pullThreshold = 100;
-            
-            document.addEventListener('touchstart', (e) => {
-                startY = e.touches[0].pageY;
-            });
-            
-            document.addEventListener('touchmove', (e) => {
-                if (window.scrollY === 0) {
-                    const currentY = e.touches[0].pageY;
-                    const pullDistance = currentY - startY;
-                    
-                    if (pullDistance > 0 && pullDistance < pullThreshold) {
-                        document.getElementById('pullRefresh').style.display = 'block';
-                        document.getElementById('pullRefresh').textContent = 'Pull to refresh...';
-                    } else if (pullDistance >= pullThreshold) {
-                        document.getElementById('pullRefresh').textContent = 'Release to refresh';
-                    }
-                }
-            });
-            
-            document.addEventListener('touchend', (e) => {
-                const pullRefresh = document.getElementById('pullRefresh');
-                if (pullRefresh.style.display === 'block') {
-                    pullRefresh.style.display = 'none';
-                    if (pullRefresh.textContent === 'Release to refresh') {
-                        refreshData();
-                    }
-                }
-            });
-        }
-
-        function refreshData() {
-            showNotification('Refreshing passes...');
-            setTimeout(() => {
-                loadPasses();
-                showNotification('Passes updated!');
-            }, 1000);
-        }
-
-        function trackPassUsage(passId) {
-            // Track pass usage analytics
-            console.log('Pass used:', passId, new Date());
         }
 
         function showNotification(message) {
@@ -1121,28 +997,15 @@
         // Handle app state changes
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden) {
-                // App became visible, refresh data
                 console.log('App visible, refreshing...');
-                refreshData();
+                loadPasses();
             }
         });
 
-        // Handle network changes
-        window.addEventListener('online', () => {
-            showNotification('Connection restored');
-        });
-
-        window.addEventListener('offline', () => {
-            showNotification('Offline mode - passes still work!');
-        });
-
-        // Debug info
-        console.log('Mobile App Initialized', {
+        console.log('✅ MOBILE APP LOADED SUCCESSFULLY', {
             userAgent: navigator.userAgent,
             screenSize: { width: screen.width, height: screen.height },
-            isStandalone: window.matchMedia('(display-mode: standalone)').matches,
-            hasServiceWorker: 'serviceWorker' in navigator,
-            hasLocalStorage: typeof(Storage) !== 'undefined'
+            isStandalone: window.matchMedia('(display-mode: standalone)').matches
         });
     </script>
 </body>
