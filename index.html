@@ -913,7 +913,7 @@
                 display: flex;
             }
 
-            .attractions-card.featured {
+            .attraction-card.featured {
                 grid-column: span 1;
             }
         }
@@ -996,6 +996,50 @@
                 transform: translateX(0);
             }
         }
+
+        /* Mobile Banner */
+        .mobile-banner {
+            display: none;
+            background: linear-gradient(135deg, var(--palm-green), var(--ocean-blue));
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            position: sticky;
+            top: 70px;
+            z-index: 99;
+        }
+
+        .mobile-banner.show {
+            display: block;
+        }
+
+        .mobile-banner-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .mobile-banner-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .mobile-banner-text {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-bottom: 1rem;
+        }
+
+        .btn-mobile-app {
+            background: var(--gold);
+            color: var(--text-dark);
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+        }
     </style>
 </head>
 <body>
@@ -1031,6 +1075,15 @@
         </div>
     </nav>
 
+    <!-- Mobile App Banner -->
+    <div class="mobile-banner" id="mobileBanner">
+        <div class="mobile-banner-content">
+            <div class="mobile-banner-title">📱 Get the Mobile App Experience!</div>
+            <div class="mobile-banner-text">Access your passes instantly on your phone</div>
+            <button class="btn-mobile-app" onclick="openMobileVersion()">Try Mobile Version</button>
+        </div>
+    </div>
+
     <!-- Mobile Navigation -->
     <div class="mobile-nav" id="mobileNav">
         <div class="mobile-nav-content">
@@ -1047,6 +1100,7 @@
                 <a href="#how-it-works" class="mobile-nav-link" onclick="navigateToSection('how-it-works')">How It Works</a>
                 <a href="customer-passes.html" class="mobile-nav-link">My Passes</a>
                 <a href="customer-account.html" class="mobile-nav-link">Account</a>
+                <a href="#" class="mobile-nav-link" onclick="openMobileVersion()">📱 Mobile App</a>
             </div>
         </div>
     </div>
@@ -1469,16 +1523,53 @@
         let currentUser = null;
         let isMobileMenuOpen = false;
 
+        // Mobile Detection
+        function isMobile() {
+            return window.innerWidth < 768 && /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        }
+
         // Check login status on load
         window.onload = function() {
             checkLoginStatus();
             updateCartBadge();
+            
+            // Show mobile banner for mobile users
+            if (isMobile() && !localStorage.getItem('hideMobileBanner')) {
+                showMobileBanner();
+            }
             
             // Show map on desktop only
             if (window.innerWidth > 768) {
                 document.querySelector('.attractions-header').style.display = 'block';
             }
         };
+
+        function showMobileBanner() {
+            document.getElementById('mobileBanner').classList.add('show');
+        }
+
+        function openMobileVersion() {
+            // On mobile, redirect to mobile version
+            if (isMobile()) {
+                window.location.href = './mobile-purchase.html';
+            } else {
+                // On desktop, open mobile demo in popup
+                const width = 375;
+                const height = 812;
+                const left = (screen.width / 2) - (width / 2);
+                const top = (screen.height / 2) - (height / 2);
+                
+                window.open(
+                    './mobile.html?demo=true',
+                    'MobileDemo',
+                    `width=${width},height=${height},left=${left},top=${top},resizable=no,scrollbars=no,toolbar=no,menubar=no,location=no,status=no`
+                );
+            }
+            
+            // Hide banner after interaction
+            localStorage.setItem('hideMobileBanner', 'true');
+            document.getElementById('mobileBanner').classList.remove('show');
+        }
 
         // Mobile menu functions
         function toggleMobileMenu() {
@@ -1587,10 +1678,10 @@
                 return;
             }
             
-            // Check if on mobile and redirect to mobile purchase if appropriate
-            if (window.innerWidth < 768) {
+            // Check if on mobile and redirect appropriately
+            if (isMobile()) {
                 sessionStorage.setItem('selectedPass', passType);
-                window.location.href = 'mobile-purchase.html?pass=' + passType;
+                window.location.href = './mobile-purchase.html?pass=' + passType;
                 return;
             }
             
@@ -1609,7 +1700,7 @@
             // Store cart and redirect
             localStorage.setItem('cart', JSON.stringify(cart));
             setTimeout(() => {
-                window.location.href = 'checkout.html';
+                window.location.href = './checkout.html';
             }, 1500);
         }
 
@@ -1619,7 +1710,7 @@
                 showMessage('Your cart is empty', 'info');
                 return;
             }
-            window.location.href = 'checkout.html';
+            window.location.href = './checkout.html';
         }
 
         function updateCartBadge() {
