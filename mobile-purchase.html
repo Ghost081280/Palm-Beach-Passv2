@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Palm Beach Pass - Mobile</title>
+    <title>Palm Beach Pass - Get Your Pass</title>
     <meta name="theme-color" content="#2D5016">
     <link rel="manifest" href="./manifest.json">
     
@@ -436,6 +436,49 @@
         .toast-mobile.show {
             transform: translateY(0);
         }
+
+        .toast-mobile.error {
+            background: var(--coral);
+        }
+
+        /* Loading overlay */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255,255,255,0.95);
+            z-index: 3000;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .loading-overlay.active {
+            display: flex;
+        }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(45,80,22,0.1);
+            border-top: 4px solid var(--palm-green);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: var(--palm-green);
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
@@ -603,37 +646,79 @@
         </div>
     </div>
 
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <div class="loading-text">Processing your purchase...</div>
+    </div>
+
     <script>
         let selectedPass = null;
         let selectedPrice = 0;
 
+        // Initialize
+        window.onload = function() {
+            console.log('Mobile Purchase Flow loaded');
+            
+            // Check if redirected from desktop with a specific pass
+            const urlParams = new URLSearchParams(window.location.search);
+            const passParam = urlParams.get('pass');
+            if (passParam) {
+                console.log('Pre-selected pass from URL:', passParam);
+                // Highlight the selected pass
+                highlightPass(passParam);
+            }
+        };
+
+        function highlightPass(passType) {
+            // Add visual indication for pre-selected pass
+            const passCards = document.querySelectorAll('.pass-card-mobile');
+            passCards.forEach((card, index) => {
+                const passTypes = ['1-day', '3-day', '7-day'];
+                if (passTypes[index] === passType) {
+                    card.style.border = '3px solid var(--gold)';
+                    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    
+                    // Auto-select after a brief delay
+                    setTimeout(() => {
+                        const prices = [89, 189, 329];
+                        selectPass(passType, prices[index]);
+                    }, 1000);
+                }
+            });
+        }
+
         function selectPass(passType, price) {
+            console.log('Selected pass:', passType, price);
             selectedPass = passType;
             selectedPrice = price;
             
             // Visual feedback
             document.querySelectorAll('.pass-card-mobile').forEach(card => {
                 card.style.transform = 'scale(1)';
+                card.style.border = '';
             });
+            
             event.currentTarget.style.transform = 'scale(1.02)';
+            event.currentTarget.style.border = '3px solid var(--gold)';
             
             // Haptic feedback simulation
             if (navigator.vibrate) {
                 navigator.vibrate(50);
             }
             
-            showToast(`${passType} pass selected - $${price}`);
+            showToast(`${passType} pass selected - ${price}`);
             
             // Auto-scroll to CTA
             setTimeout(() => {
                 document.querySelector('.bottom-cta').scrollIntoView({ behavior: 'smooth' });
                 event.currentTarget.style.transform = 'scale(1)';
-            }, 500);
+            }, 800);
         }
 
         function showLogin() {
             if (!selectedPass) {
-                showToast('Please select a pass first');
+                showToast('Please select a pass first', 'error');
                 return;
             }
             document.getElementById('loginModal').classList.add('active');
@@ -647,54 +732,82 @@
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             
+            if (!email || !password) {
+                showToast('Please enter email and password', 'error');
+                return;
+            }
+            
             if (email === 'demo@demo.com' && password === 'demo') {
-                // Successful login
-                localStorage.setItem('isLoggedIn', 'true');
-                localStorage.setItem('currentUser', JSON.stringify({
-                    email: 'demo@demo.com',
-                    name: 'Demo User'
-                }));
-                
-                // Create demo pass
-                const demoPass = {
-                    id: `PB${Math.floor(Math.random() * 900) + 100}-${selectedPass.charAt(0).toUpperCase()}D-ADT-001`,
-                    type: selectedPass.charAt(0).toUpperCase() + selectedPass.slice(1) + ' Pass',
-                    category: 'adult',
-                    status: 'active',
-                    purchaseDate: new Date().toISOString(),
-                    price: selectedPrice
-                };
-                
-                localStorage.setItem('userPasses', JSON.stringify([demoPass]));
-                
+                // Show loading
+                document.getElementById('loadingOverlay').classList.add('active');
                 closeModal();
-                showToast('Purchase successful! Redirecting to mobile app...');
                 
-                // Redirect to mobile app
+                // Simulate purchase process
                 setTimeout(() => {
-                    window.location.href = './mobile.html';
+                    completePurchase();
                 }, 2000);
             } else {
-                showToast('Invalid credentials. Use demo@demo.com / demo');
+                showToast('Invalid credentials. Use demo@demo.com / demo', 'error');
             }
         }
 
-        function showToast(message) {
+        function completePurchase() {
+            console.log('Completing purchase...');
+            
+            // Set login status
+            localStorage.setItem('isLoggedIn', 'true');
+            localStorage.setItem('currentUser', JSON.stringify({
+                email: 'demo@demo.com',
+                name: 'Demo User'
+            }));
+            
+            // Create demo pass based on selection
+            const demoPass = {
+                id: `PB${Math.floor(Math.random() * 900) + 100}-${selectedPass.charAt(0).toUpperCase()}D-ADT-001`,
+                type: selectedPass.charAt(0).toUpperCase() + selectedPass.slice(1) + ' Pass',
+                category: 'Adult',
+                status: 'active',
+                purchaseDate: new Date().toISOString(),
+                price: selectedPrice,
+                daysLeft: parseInt(selectedPass.split('-')[0]),
+                visitedToday: 0,
+                lastUsed: null
+            };
+            
+            console.log('Created pass:', demoPass);
+            
+            // Save passes
+            localStorage.setItem('userPasses', JSON.stringify([demoPass]));
+            
+            // Hide loading
+            document.getElementById('loadingOverlay').classList.remove('active');
+            
+            // Show success and redirect
+            showToast('Purchase successful! Welcome to Palm Beach Pass!');
+            
+            setTimeout(() => {
+                console.log('Redirecting to mobile app...');
+                window.location.href = './mobile.html';
+            }, 2000);
+        }
+
+        function showToast(message, type = 'success') {
+            console.log('Toast:', message, type);
             const toast = document.createElement('div');
-            toast.className = 'toast-mobile show';
+            toast.className = `toast-mobile show ${type === 'error' ? 'error' : ''}`;
             toast.textContent = message;
             document.body.appendChild(toast);
             
             setTimeout(() => {
                 toast.classList.remove('show');
                 setTimeout(() => toast.remove(), 300);
-            }, 2500);
+            }, 3000);
         }
 
         // Add smooth scroll behavior
         document.documentElement.style.scrollBehavior = 'smooth';
 
-        // Add touch feedback to all buttons
+        // Add touch feedback to all interactive elements
         document.querySelectorAll('button, .pass-card-mobile').forEach(element => {
             element.addEventListener('touchstart', () => {
                 element.style.opacity = '0.8';
@@ -706,11 +819,13 @@
         });
 
         // Debug info
-        console.log('Mobile Purchase Flow Loaded');
-        console.log('Test URLs:');
-        console.log('- Mobile App: ./mobile.html');
-        console.log('- Desktop: ./index.html');
-        console.log('- Vendor Scanner: ./vendor-scanner.html');
+        console.log('Mobile Purchase Flow:', {
+            userAgent: navigator.userAgent,
+            screenSize: { width: screen.width, height: screen.height },
+            hasVibration: 'vibrate' in navigator,
+            hasLocalStorage: typeof(Storage) !== 'undefined',
+            currentURL: window.location.href
+        });
     </script>
 </body>
 </html>
