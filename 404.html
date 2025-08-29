@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Palm Beach Pass</title>
+    <title>Palm Beach Pass - Redirecting...</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, sans-serif;
@@ -39,74 +39,99 @@
             background: rgba(0,0,0,0.8); color: white; padding: 1rem; 
             border-radius: 10px; font-size: 0.8rem; max-width: 90%; 
             margin-top: 2rem; text-align: left; white-space: pre-wrap;
+            font-family: monospace;
         }
     </style>
 </head>
 <body>
     <div class="logo">🌴</div>
     <h1 class="title">Palm Beach Pass</h1>
-    <p class="message">Redirecting to the right version...</p>
+    <p class="message">Detecting your device...</p>
     <div class="spinner" id="spinner"></div>
     
     <div style="margin-top: 2rem;">
-        <a href="./index.html" class="btn">🖥️ Desktop Version</a>
-        <a href="./mobile-purchase.html" class="btn">📱 Mobile Version</a>
+        <a href="index.html" class="btn">🖥️ Desktop Version</a>
+        <a href="mobile-purchase.html" class="btn">📱 Mobile Version</a>
     </div>
     
     <div class="debug" id="debug"></div>
 
     <script>
-        // SUPER SIMPLE MOBILE DETECTION AND REDIRECT
-        (function() {
-            const userAgent = navigator.userAgent;
-            const isMobile = /iPhone|iPad|iPod|Android|BlackBerry|Opera Mini|IEMobile|Mobile/i.test(userAgent);
-            const isSmallScreen = window.innerWidth < 768;
-            const isTablet = /iPad/i.test(userAgent) && window.innerWidth > 768;
+        // Enhanced mobile detection
+        function isMobileDevice() {
+            const userAgent = navigator.userAgent || navigator.vendor || window.opera;
             
-            const debugInfo = `
+            // Check for mobile user agents
+            const mobileRegex = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini|mobile|tablet/i;
+            const isMobileUA = mobileRegex.test(userAgent.toLowerCase());
+            
+            // Check screen size
+            const isSmallScreen = window.innerWidth <= 768;
+            
+            // Check touch capability
+            const hasTouch = ('ontouchstart' in window) || 
+                           (navigator.maxTouchPoints > 0) || 
+                           (navigator.msMaxTouchPoints > 0);
+            
+            // Check orientation (mobile devices have this)
+            const hasOrientation = typeof window.orientation !== 'undefined';
+            
+            // Final decision
+            return isMobileUA || (isSmallScreen && (hasTouch || hasOrientation));
+        }
+        
+        // Get detailed debug info
+        const debugInfo = `404 Page Debug Info:
+============================
 URL: ${window.location.href}
-User Agent: ${userAgent}
+User Agent: ${navigator.userAgent}
 Screen: ${window.innerWidth}x${window.innerHeight}
-Is Mobile UA: ${isMobile}
-Is Small Screen: ${isSmallScreen}
-Is Tablet: ${isTablet}
-Should Redirect: ${(isMobile || isSmallScreen) && !isTablet}
-            `;
+Is Mobile UA: ${/mobile|android|iphone/i.test(navigator.userAgent)}
+Is Small Screen: ${window.innerWidth <= 768}
+Has Touch: ${('ontouchstart' in window) || (navigator.maxTouchPoints > 0)}
+Touch Points: ${navigator.maxTouchPoints}
+Platform: ${navigator.platform}
+Vendor: ${navigator.vendor}
+Mobile Detection Result: ${isMobileDevice()}
+============================`;
+        
+        document.getElementById('debug').textContent = debugInfo;
+        console.log(debugInfo);
+        
+        // Determine redirect
+        let redirectTo = 'index.html'; // Default to desktop
+        
+        if (isMobileDevice()) {
+            console.log('Mobile device detected on 404 page');
             
-            document.getElementById('debug').textContent = debugInfo;
-            console.log('404 Debug Info:', debugInfo);
-            
-            // Determine redirect
-            let redirectTo = './index.html'; // Default to desktop
-            
-            // Mobile redirect logic
-            if ((isMobile || isSmallScreen) && !isTablet) {
-                console.log('Mobile device detected, checking user state...');
-                
-                const hasAccount = localStorage.getItem('isLoggedIn') === 'true' || localStorage.getItem('userPasses');
-                
-                if (hasAccount) {
-                    redirectTo = './mobile.html';
-                    console.log('User has account -> mobile app');
-                } else {
-                    redirectTo = './mobile-purchase.html';
-                    console.log('New user -> mobile purchase');
-                }
-            } else {
-                console.log('Desktop/Tablet -> index');
+            // Check if user has account
+            let hasAccount = false;
+            try {
+                hasAccount = localStorage.getItem('isLoggedIn') === 'true' || 
+                            localStorage.getItem('userPasses') !== null;
+            } catch(e) {
+                console.error('LocalStorage error:', e);
             }
             
-            console.log('Redirecting to:', redirectTo);
-            
-            // Update message
-            document.querySelector('.message').textContent = `Redirecting to ${redirectTo}...`;
-            
-            // Redirect after 2 seconds
-            setTimeout(() => {
-                window.location.href = redirectTo;
-            }, 2000);
-            
-        })();
+            if (hasAccount) {
+                redirectTo = 'mobile.html';
+                console.log('User has account -> mobile app');
+            } else {
+                redirectTo = 'mobile-purchase.html';
+                console.log('New user -> mobile purchase');
+            }
+        } else {
+            console.log('Desktop device detected on 404 page');
+        }
+        
+        // Update message
+        document.querySelector('.message').textContent = `Redirecting to ${redirectTo}...`;
+        
+        // Redirect after 2 seconds
+        setTimeout(() => {
+            console.log('Redirecting from 404 to:', redirectTo);
+            window.location.href = redirectTo;
+        }, 2000);
     </script>
 </body>
 </html>
