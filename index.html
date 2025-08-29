@@ -33,7 +33,9 @@
                 screenHeight: window.innerHeight,
                 touchPoints: navigator.maxTouchPoints,
                 platform: navigator.platform,
-                vendor: navigator.vendor
+                vendor: navigator.vendor,
+                hostname: window.location.hostname,
+                pathname: window.location.pathname
             };
             
             console.log('Mobile Detection Results:', debugInfo);
@@ -54,16 +56,19 @@
                     console.error('LocalStorage error:', e);
                 }
                 
-                // Determine redirect URL
-                var redirectUrl = hasAccount ? 'mobile.html' : 'mobile-purchase.html';
+                // Simple redirect - let's test with the test page first
+                var redirectUrl = 'test-mobile.html';
+                
+                // For production, use these:
+                // var redirectUrl = hasAccount ? 'mobile.html' : 'mobile-purchase.html';
                 
                 console.log('Redirecting to:', redirectUrl);
                 
-                // Perform immediate redirect
+                // Use replace to prevent back button issues
                 window.location.replace(redirectUrl);
                 
                 // Stop all execution
-                throw new Error('Redirecting to mobile version');
+                return false;
             } else {
                 console.log('DESKTOP DETECTED - Continue loading');
             }
