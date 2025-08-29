@@ -3,231 +3,108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Palm Beach Pass - Redirecting...</title>
+    <title>Palm Beach Pass</title>
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #FAF3E3, #FFFFFF);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            margin: 0;
-            background: linear-gradient(135deg, #FAF3E3 0%, #FFFFFF 100%);
-            color: #1A1A1A;
-        }
-        .logo {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-        }
-        .title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #2D5016;
-            margin-bottom: 1rem;
-        }
-        .message {
-            color: #666;
-            margin-bottom: 2rem;
             text-align: center;
-            max-width: 400px;
-            line-height: 1.5;
         }
+        .logo { font-size: 4rem; margin-bottom: 1rem; }
+        .title { font-size: 1.5rem; color: #2D5016; margin-bottom: 1rem; }
+        .message { color: #666; margin-bottom: 2rem; }
         .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid rgba(45, 80, 22, 0.1);
+            width: 40px; height: 40px;
+            border: 4px solid rgba(45,80,22,0.1);
             border-top: 4px solid #2D5016;
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin-bottom: 1rem;
+            margin-bottom: 2rem;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .btn { 
+            background: #2D5016; color: white; padding: 1rem 2rem; 
+            border: none; border-radius: 25px; cursor: pointer; 
+            margin: 0.5rem; font-size: 1rem; text-decoration: none;
+            display: inline-block;
         }
-        .fallback-link {
-            color: #006B7D;
-            text-decoration: none;
-            font-weight: 500;
-            padding: 0.5rem 1rem;
-            border: 2px solid #006B7D;
-            border-radius: 25px;
-            transition: all 0.3s;
-        }
-        .fallback-link:hover {
-            background: #006B7D;
-            color: white;
-        }
-        .debug-info {
-            position: fixed;
-            bottom: 10px;
-            right: 10px;
-            background: rgba(0,0,0,0.8);
-            color: white;
-            padding: 0.5rem;
-            border-radius: 5px;
-            font-size: 0.8rem;
-            max-width: 300px;
+        .debug { 
+            background: rgba(0,0,0,0.8); color: white; padding: 1rem; 
+            border-radius: 10px; font-size: 0.8rem; max-width: 90%; 
+            margin-top: 2rem; text-align: left; white-space: pre-wrap;
         }
     </style>
 </head>
 <body>
     <div class="logo">🌴</div>
     <h1 class="title">Palm Beach Pass</h1>
-    <p class="message">Finding the right page for you...</p>
-    <div class="spinner"></div>
-    <a href="/" class="fallback-link" id="fallbackLink">Go to Home</a>
-
-    <div class="debug-info" id="debugInfo"></div>
+    <p class="message">Redirecting to the right version...</p>
+    <div class="spinner" id="spinner"></div>
+    
+    <div style="margin-top: 2rem;">
+        <a href="./index.html" class="btn">🖥️ Desktop Version</a>
+        <a href="./mobile-purchase.html" class="btn">📱 Mobile Version</a>
+    </div>
+    
+    <div class="debug" id="debug"></div>
 
     <script>
-        // Enhanced GitHub Pages SPA redirect script
+        // SUPER SIMPLE MOBILE DETECTION AND REDIRECT
         (function() {
-            console.log('404 Handler - Starting redirect logic');
+            const userAgent = navigator.userAgent;
+            const isMobile = /iPhone|iPad|iPod|Android|BlackBerry|Opera Mini|IEMobile|Mobile/i.test(userAgent);
+            const isSmallScreen = window.innerWidth < 768;
+            const isTablet = /iPad/i.test(userAgent) && window.innerWidth > 768;
             
-            const currentPath = window.location.pathname;
-            const currentSearch = window.location.search;
-            const currentHash = window.location.hash;
-            const hostname = window.location.hostname;
-            
-            console.log('Current location:', {
-                pathname: currentPath,
-                search: currentSearch,
-                hash: currentHash,
-                hostname: hostname,
-                fullURL: window.location.href
-            });
-            
-            // Mobile Detection Function
-            function isMobileDevice() {
-                const userAgent = navigator.userAgent;
-                const screenWidth = window.innerWidth || screen.width;
-                
-                const isMobile = (/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent) && screenWidth < 1024) ||
-                               (screenWidth < 600);
-                
-                console.log('Mobile detection:', {
-                    userAgent: userAgent,
-                    screenWidth: screenWidth,
-                    isMobile: isMobile
-                });
-                
-                return isMobile;
-            }
-            
-            // Get base path for GitHub Pages
-            function getBasePath() {
-                // For GitHub Pages (username.github.io/repo-name)
-                if (hostname.includes('github.io')) {
-                    const pathParts = currentPath.split('/').filter(part => part);
-                    if (pathParts.length > 0 && !pathParts[0].includes('.html')) {
-                        return `/${pathParts[0]}/`;
-                    }
-                }
-                
-                // For custom domains or local development
-                return '/';
-            }
-            
-            const basePath = getBasePath();
-            console.log('Base path determined:', basePath);
-            
-            // Update fallback link
-            document.getElementById('fallbackLink').href = basePath;
-            
-            // Update debug info
-            document.getElementById('debugInfo').innerHTML = `
-                Path: ${currentPath}<br>
-                Base: ${basePath}<br>
-                Mobile: ${isMobileDevice()}<br>
-                Screen: ${window.innerWidth}x${window.innerHeight}
+            const debugInfo = `
+URL: ${window.location.href}
+User Agent: ${userAgent}
+Screen: ${window.innerWidth}x${window.innerHeight}
+Is Mobile UA: ${isMobile}
+Is Small Screen: ${isSmallScreen}
+Is Tablet: ${isTablet}
+Should Redirect: ${(isMobile || isSmallScreen) && !isTablet}
             `;
             
-            // Route mapping for known pages
-            const routes = {
-                'mobile': 'mobile.html',
-                'mobile.html': 'mobile.html',
-                'mobile-purchase': 'mobile-purchase.html', 
-                'mobile-purchase.html': 'mobile-purchase.html',
-                'checkout': 'checkout.html',
-                'checkout.html': 'checkout.html',
-                'customer-passes': 'customer-passes.html',
-                'customer-passes.html': 'customer-passes.html',
-                'customer-account': 'customer-account.html',
-                'customer-account.html': 'customer-account.html',
-                'vendor-portal': 'vendor-portal.html',
-                'vendor-portal.html': 'vendor-portal.html',
-                'vendor-scanner': 'vendor-scanner.html',
-                'vendor-scanner.html': 'vendor-scanner.html'
-            };
+            document.getElementById('debug').textContent = debugInfo;
+            console.log('404 Debug Info:', debugInfo);
             
-            // Extract the file/route name from current path
-            let pathParts = currentPath.split('/').filter(part => part);
+            // Determine redirect
+            let redirectTo = './index.html'; // Default to desktop
             
-            // Remove base path parts for GitHub Pages
-            if (hostname.includes('github.io') && pathParts.length > 0 && !pathParts[0].includes('.html')) {
-                pathParts = pathParts.slice(1); // Remove repo name
-            }
-            
-            const lastPart = pathParts[pathParts.length - 1];
-            console.log('Extracted route:', lastPart, 'from parts:', pathParts);
-            
-            let redirectTo = basePath; // Default to home
-            
-            // Check if it's a known route
-            if (lastPart && routes[lastPart]) {
-                redirectTo = basePath + routes[lastPart];
-                console.log('Found route mapping:', redirectTo);
-            } else if (lastPart && lastPart.endsWith('.html')) {
-                // Direct HTML file access
-                redirectTo = basePath + lastPart;
-                console.log('Direct HTML file:', redirectTo);
-            } else {
-                // Apply intelligent routing based on device and user state
-                console.log('Applying intelligent routing...');
+            // Mobile redirect logic
+            if ((isMobile || isSmallScreen) && !isTablet) {
+                console.log('Mobile device detected, checking user state...');
                 
-                const isMobile = isMobileDevice();
-                const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-                const hasPasses = localStorage.getItem('userPasses');
+                const hasAccount = localStorage.getItem('isLoggedIn') === 'true' || localStorage.getItem('userPasses');
                 
-                console.log('User state:', {
-                    isMobile: isMobile,
-                    isLoggedIn: isLoggedIn,
-                    hasPasses: !!hasPasses
-                });
-                
-                if (isMobile) {
-                    // Mobile routing logic
-                    if (isLoggedIn || hasPasses) {
-                        redirectTo = basePath + 'mobile.html';
-                        console.log('Mobile user with passes -> mobile app');
-                    } else {
-                        redirectTo = basePath + 'mobile-purchase.html';
-                        console.log('Mobile user without passes -> mobile purchase');
-                    }
+                if (hasAccount) {
+                    redirectTo = './mobile.html';
+                    console.log('User has account -> mobile app');
                 } else {
-                    // Desktop users always go to index
-                    redirectTo = basePath + 'index.html';
-                    console.log('Desktop user -> index');
+                    redirectTo = './mobile-purchase.html';
+                    console.log('New user -> mobile purchase');
                 }
+            } else {
+                console.log('Desktop/Tablet -> index');
             }
             
-            // Preserve search params and hash
-            if (currentSearch || currentHash) {
-                redirectTo += currentSearch + currentHash;
-            }
-            
-            console.log('Final redirect URL:', redirectTo);
+            console.log('Redirecting to:', redirectTo);
             
             // Update message
-            document.querySelector('.message').textContent = 'Redirecting you to the correct page...';
+            document.querySelector('.message').textContent = `Redirecting to ${redirectTo}...`;
             
-            // Perform the redirect after a short delay
+            // Redirect after 2 seconds
             setTimeout(() => {
-                console.log('Performing redirect to:', redirectTo);
-                window.location.replace(redirectTo);
-            }, 1000);
+                window.location.href = redirectTo;
+            }, 2000);
             
         })();
     </script>
