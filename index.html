@@ -5,6 +5,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Palm Beach Pass - Your Gateway to Paradise</title>
     
+    <!-- Immediate Mobile Redirect Script - This runs FIRST -->
+    <script>
+        // IMMEDIATE MOBILE CHECK - Runs before page loads
+        (function() {
+            var userAgent = navigator.userAgent;
+            var isMobile = /iPhone|iPad|iPod|Android|BlackBerry|Opera Mini|IEMobile|Mobile/i.test(userAgent);
+            var isSmallScreen = window.innerWidth < 768;
+            var isActualMobile = isMobile || isSmallScreen;
+            
+            console.log('Immediate mobile check:', {
+                userAgent: userAgent,
+                isMobile: isMobile,
+                isSmallScreen: isSmallScreen,
+                screenWidth: window.innerWidth,
+                shouldRedirect: isActualMobile
+            });
+            
+            if (isActualMobile) {
+                console.log('Mobile detected - redirecting immediately');
+                
+                // Check if user has passes or is logged in
+                var hasAccount = localStorage.getItem('isLoggedIn') === 'true' || localStorage.getItem('userPasses');
+                
+                if (hasAccount) {
+                    console.log('User has account - going to mobile app');
+                    window.location.href = './mobile.html';
+                } else {
+                    console.log('New user - going to mobile purchase');
+                    window.location.href = './mobile-purchase.html';
+                }
+                
+                // Stop page loading
+                return false;
+            }
+        })();
+    </script>
+    
     <style>
         * {
             margin: 0;
@@ -33,7 +70,7 @@
             color: var(--text-dark);
         }
 
-        /* Premium Navigation - FIXED */
+        /* Premium Navigation */
         .nav-header {
             background: var(--white);
             box-shadow: 0 2px 20px rgba(0,0,0,0.08);
@@ -85,7 +122,6 @@
             color: var(--palm-green);
         }
 
-        /* FIXED: Desktop Navigation */
         .nav-links {
             display: flex;
             align-items: center;
@@ -115,34 +151,6 @@
             flex-shrink: 0;
         }
 
-        .cart-icon {
-            position: relative;
-            cursor: pointer;
-            padding: 0.5rem;
-            border-radius: 50%;
-            transition: background 0.3s;
-        }
-
-        .cart-icon:hover {
-            background: var(--sand);
-        }
-
-        .cart-badge {
-            position: absolute;
-            top: 0;
-            right: 0;
-            background: var(--coral);
-            color: white;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.75rem;
-            font-weight: bold;
-        }
-
         .btn-login {
             background: var(--palm-green);
             color: white;
@@ -162,80 +170,13 @@
             box-shadow: var(--shadow);
         }
 
-        /* Mobile Menu Toggle */
-        .mobile-menu-toggle {
-            display: none;
-            flex-direction: column;
-            cursor: pointer;
-            padding: 0.5rem;
-        }
-
-        .mobile-menu-toggle span {
-            width: 25px;
-            height: 3px;
-            background: var(--text-dark);
-            margin: 2px 0;
-            transition: 0.3s;
-        }
-
-        /* Mobile Navigation */
-        .mobile-nav {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100vh;
-            background: rgba(0,0,0,0.8);
-            z-index: 2000;
-        }
-
-        .mobile-nav.active {
-            display: block;
-        }
-
-        .mobile-nav-content {
-            background: white;
-            height: 100%;
-            width: 80%;
-            max-width: 300px;
-            padding: 2rem;
-            transform: translateX(-100%);
-            transition: transform 0.3s;
-        }
-
-        .mobile-nav.active .mobile-nav-content {
-            transform: translateX(0);
-        }
-
-        .mobile-nav-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid #eee;
-        }
-
-        .mobile-nav-close {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-        }
-
-        .mobile-nav-links {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-        }
-
-        .mobile-nav-link {
-            text-decoration: none;
-            color: var(--text-dark);
-            font-size: 1.1rem;
-            padding: 1rem 0;
-            border-bottom: 1px solid #eee;
+        /* Mobile Banner */
+        .mobile-test-banner {
+            background: linear-gradient(135deg, var(--coral), var(--gold));
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            font-weight: 600;
         }
 
         /* Hero Section */
@@ -243,10 +184,7 @@
             position: relative;
             height: 70vh;
             min-height: 500px;
-            background: linear-gradient(135deg, rgba(0,107,125,0.9), rgba(45,80,22,0.9)),
-                        url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080"><defs><pattern id="palm" x="0" y="0" width="200" height="200" patternUnits="userSpaceOnUse"><path d="M100 50 Q 80 20, 50 30 T 30 60 Q 40 80, 70 70 T 100 50" fill="%2310B981" opacity="0.1"/><path d="M150 100 Q 130 70, 100 80 T 80 110 Q 90 130, 120 120 T 150 100" fill="%237C3AED" opacity="0.1"/></pattern></defs><rect width="100%" height="100%" fill="url(%23palm)"/></svg>');
-            background-size: cover;
-            background-position: center;
+            background: linear-gradient(135deg, rgba(0,107,125,0.9), rgba(45,80,22,0.9));
             display: flex;
             align-items: center;
             justify-content: center;
@@ -316,21 +254,22 @@
             box-shadow: 0 15px 40px rgba(212,175,55,0.3);
         }
 
-        .btn-secondary {
-            background: transparent;
+        .btn-mobile-test {
+            background: var(--coral);
             color: white;
-            border: 2px solid white;
+            border: none;
             padding: 1rem 3rem;
             border-radius: 50px;
             font-size: 1.1rem;
             cursor: pointer;
             transition: all 0.3s;
             font-family: inherit;
+            font-weight: 500;
         }
 
-        .btn-secondary:hover {
-            background: white;
-            color: var(--ocean-blue);
+        .btn-mobile-test:hover {
+            background: var(--gold);
+            color: var(--text-dark);
         }
 
         /* Pass Selection */
@@ -363,7 +302,6 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 2rem;
-            margin-bottom: 3rem;
         }
 
         .pass-card {
@@ -473,326 +411,44 @@
             background: var(--ocean-blue);
         }
 
-        /* Attractions Section */
-        .attractions-preview {
-            background: white;
-            padding: 0;
-        }
-
-        /* Promotional Header */
-        .attractions-promo {
-            background: linear-gradient(135deg, var(--palm-green) 0%, var(--ocean-blue) 100%);
+        /* Debug Panel */
+        .debug-panel {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.9);
             color: white;
-            padding: 3rem 2rem;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .attractions-promo::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.1)"/><circle cx="80" cy="30" r="1.5" fill="rgba(255,255,255,0.1)"/><circle cx="40" cy="70" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="70" cy="80" r="2.5" fill="rgba(255,255,255,0.1)"/></svg>') repeat;
-            opacity: 0.3;
-        }
-
-        .promo-content {
-            position: relative;
-            z-index: 2;
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        .promo-title {
-            font-size: 3rem;
-            font-weight: 300;
-            margin-bottom: 0.5rem;
-            letter-spacing: 2px;
-        }
-
-        .promo-subtitle {
-            font-size: 1.8rem;
-            margin-bottom: 1rem;
-            color: var(--gold);
-            font-weight: 600;
-        }
-
-        .promo-description {
-            font-size: 1.1rem;
-            opacity: 0.95;
-            line-height: 1.6;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        .promo-stats {
-            display: flex;
-            justify-content: center;
-            gap: 3rem;
-            margin-top: 2rem;
-            flex-wrap: wrap;
-        }
-
-        .stat-item {
-            text-align: center;
-        }
-
-        .stat-number {
-            font-size: 2.5rem;
-            font-weight: 600;
-            color: var(--gold);
-            display: block;
-        }
-
-        .stat-label {
-            font-size: 0.9rem;
-            opacity: 0.9;
-            margin-top: 0.5rem;
-        }
-
-        /* Map Section */
-        .attractions-header {
-            position: relative;
-            height: 500px;
-            background: #f5f5f5;
-        }
-
-        .map-container {
-            position: relative;
-            height: 100%;
-            width: 100%;
-        }
-
-        .map-view {
-            height: 100%;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .map-view iframe {
-            width: 100%;
-            height: 100%;
-            border: 0;
-            filter: grayscale(20%);
-        }
-
-        /* Filter Bar */
-        .filter-bar {
-            background: white;
-            border-bottom: 1px solid #e0e0e0;
-            padding: 1rem 0;
-            position: sticky;
-            top: 70px;
-            z-index: 50;
-        }
-
-        .filter-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 0 2rem;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            overflow-x: auto;
-        }
-
-        .category-filters {
-            display: flex;
-            gap: 0.5rem;
-            flex: 1;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        .category-pill {
-            background: transparent;
-            border: 1px solid #e0e0e0;
-            padding: 0.5rem 1rem;
-            border-radius: 25px;
-            cursor: pointer;
-            font-family: inherit;
-            font-size: 0.85rem;
-            transition: all 0.3s;
-            white-space: nowrap;
-            flex-shrink: 0;
-        }
-
-        .category-pill:hover {
-            border-color: var(--ocean-blue);
-            color: var(--ocean-blue);
-        }
-
-        .category-pill.active {
-            background: var(--palm-green);
-            color: white;
-            border-color: var(--palm-green);
-        }
-
-        /* Attractions Container */
-        .attractions-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-
-        .results-count {
-            color: var(--text-light);
-            margin-bottom: 1.5rem;
-            font-size: 0.95rem;
-        }
-
-        /* Attractions Grid */
-        .attractions-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 2rem;
-            margin-bottom: 3rem;
-        }
-
-        .attraction-card {
-            background: white;
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            transition: all 0.3s;
-            cursor: pointer;
-            border: 1px solid #f0f0f0;
-        }
-
-        .attraction-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 12px 40px rgba(0,0,0,0.15);
-        }
-
-        .attraction-card.featured {
-            grid-column: span 2;
-        }
-
-        .attraction-image {
-            height: 220px;
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .attraction-card.featured .attraction-image {
-            height: 280px;
-        }
-
-        .image-placeholder {
-            font-size: 4rem;
-            opacity: 0.4;
-            color: white;
-        }
-
-        .category-tag {
-            position: absolute;
-            top: 1rem;
-            left: 1rem;
-            background: rgba(255,255,255,0.95);
-            padding: 0.4rem 0.8rem;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            backdrop-filter: blur(10px);
-        }
-
-        .attraction-info {
-            padding: 1.5rem;
-        }
-
-        .attraction-info h3 {
-            font-size: 1.2rem;
-            font-weight: 600;
-            margin-bottom: 0.75rem;
-            color: var(--text-dark);
-            line-height: 1.3;
-        }
-
-        .price-row {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 0.75rem;
-        }
-
-        .regular-price {
-            color: var(--text-light);
-            font-size: 0.95rem;
-            text-decoration: line-through;
-        }
-
-        .free-badge {
-            background: var(--success);
-            color: white;
-            padding: 0.25rem 0.75rem;
-            border-radius: 15px;
+            padding: 1rem;
+            border-radius: 10px;
             font-size: 0.8rem;
-            font-weight: 600;
+            max-width: 300px;
+            z-index: 10000;
         }
 
-        .attraction-desc {
-            color: var(--text-light);
-            font-size: 0.95rem;
-            line-height: 1.5;
-            margin-bottom: 0.75rem;
-        }
-
-        /* Footer */
-        .footer {
+        /* Success Message */
+        .success-message {
+            position: fixed;
+            top: 100px;
+            right: 2rem;
             background: var(--palm-green);
             color: white;
-            padding: 3rem 2rem 1rem;
-            margin-top: 5rem;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            box-shadow: var(--shadow-lg);
+            animation: slideInRight 0.3s ease-out;
+            z-index: 3000;
         }
 
-        .footer-content {
-            max-width: 1400px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 3rem;
-            margin-bottom: 2rem;
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+            }
+            to {
+                transform: translateX(0);
+            }
         }
 
-        .footer-section h3 {
-            margin-bottom: 1rem;
-            font-weight: 400;
-        }
-
-        .footer-links {
-            list-style: none;
-        }
-
-        .footer-links li {
-            margin-bottom: 0.75rem;
-        }
-
-        .footer-links a {
-            color: white;
-            text-decoration: none;
-            opacity: 0.8;
-            transition: opacity 0.3s;
-        }
-
-        .footer-links a:hover {
-            opacity: 1;
-        }
-
-        .footer-bottom {
-            text-align: center;
-            padding-top: 2rem;
-            border-top: 1px solid rgba(255,255,255,0.1);
-            opacity: 0.7;
-        }
-
-        /* Login Modal */
+        /* Modal */
         .modal {
             display: none;
             position: fixed;
@@ -903,207 +559,56 @@
             text-decoration: none;
         }
 
-        /* Mobile Responsive - FIXED */
-        @media (max-width: 1024px) {
-            .nav-links {
-                display: none;
-            }
-
-            .mobile-menu-toggle {
-                display: flex;
-            }
-
-            .attraction-card.featured {
-                grid-column: span 1;
-            }
-        }
-
+        /* Mobile Responsive */
         @media (max-width: 768px) {
             .hero h1 {
                 font-size: 2.5rem;
-            }
-
-            .hero p {
-                font-size: 1rem;
-            }
-
-            .promo-title {
-                font-size: 2rem;
-            }
-
-            .promo-subtitle {
-                font-size: 1.3rem;
-            }
-
-            .promo-stats {
-                gap: 1.5rem;
             }
 
             .pass-grid {
                 grid-template-columns: 1fr;
             }
 
-            .attractions-grid {
-                grid-template-columns: 1fr;
+            .nav-links {
+                display: none;
             }
-
-            .category-filters {
-                overflow-x: auto;
-                flex-wrap: nowrap;
-            }
-
-            .filter-container {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 1rem;
-            }
-        }
-
-        /* Loading State */
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(0,0,0,0.1);
-            border-top-color: var(--palm-green);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        /* Success Message */
-        .success-message {
-            position: fixed;
-            top: 100px;
-            right: 2rem;
-            background: var(--palm-green);
-            color: white;
-            padding: 1rem 2rem;
-            border-radius: 10px;
-            box-shadow: var(--shadow-lg);
-            animation: slideInRight 0.3s ease-out;
-            z-index: 3000;
-        }
-
-        @keyframes slideInRight {
-            from {
-                transform: translateX(100%);
-            }
-            to {
-                transform: translateX(0);
-            }
-        }
-
-        /* Mobile Banner */
-        .mobile-banner {
-            display: none;
-            background: linear-gradient(135deg, var(--palm-green), var(--ocean-blue));
-            color: white;
-            padding: 1rem;
-            text-align: center;
-            position: sticky;
-            top: 70px;
-            z-index: 99;
-        }
-
-        .mobile-banner.show {
-            display: block;
-        }
-
-        .mobile-banner-content {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        .mobile-banner-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-        }
-
-        .mobile-banner-text {
-            font-size: 0.9rem;
-            opacity: 0.9;
-            margin-bottom: 1rem;
-        }
-
-        .btn-mobile-app {
-            background: var(--gold);
-            color: var(--text-dark);
-            border: none;
-            padding: 0.75rem 2rem;
-            border-radius: 25px;
-            font-weight: 600;
-            cursor: pointer;
-            font-family: inherit;
         }
     </style>
 </head>
 <body>
+    <!-- Debug Panel -->
+    <div class="debug-panel" id="debugPanel">
+        <strong>Debug Info:</strong><br>
+        User Agent: <span id="debugUA"></span><br>
+        Screen: <span id="debugScreen"></span><br>
+        Mobile: <span id="debugMobile"></span><br>
+        URL: <span id="debugURL"></span>
+    </div>
+
+    <!-- Mobile Test Banner -->
+    <div class="mobile-test-banner">
+        🚨 If you're on mobile and seeing this, the mobile detection isn't working! 🚨
+    </div>
+
     <!-- Navigation -->
     <nav class="nav-header">
         <div class="nav-content">
-            <a href="#" class="logo" onclick="scrollToTop()">
+            <a href="#" class="logo">
                 <div class="logo-icon">🌴</div>
                 <div class="logo-text">Palm Beach <span>Pass</span></div>
             </a>
             
-            <!-- Desktop Navigation -->
             <div class="nav-links">
                 <a href="#passes" class="nav-link">Passes</a>
-                <a href="#attractions" class="nav-link">Attractions</a>
-                <a href="#how-it-works" class="nav-link">How It Works</a>
-            </div>
-            
-            <!-- Mobile Menu Toggle -->
-            <div class="mobile-menu-toggle" onclick="toggleMobileMenu()">
-                <span></span>
-                <span></span>
-                <span></span>
+                <a href="#" class="nav-link">Attractions</a>
+                <a href="#" class="nav-link">How It Works</a>
             </div>
             
             <div class="user-menu">
-                <div class="cart-icon" onclick="showCart()">
-                    🛒
-                    <span class="cart-badge" id="cartCount" style="display: none;">0</span>
-                </div>
                 <button class="btn-login" onclick="showLogin()">Sign In</button>
             </div>
         </div>
     </nav>
-
-    <!-- Mobile App Banner -->
-    <div class="mobile-banner" id="mobileBanner">
-        <div class="mobile-banner-content">
-            <div class="mobile-banner-title">📱 Get the Mobile App Experience!</div>
-            <div class="mobile-banner-text">Access your passes instantly on your phone</div>
-            <button class="btn-mobile-app" onclick="openMobileVersion()">Try Mobile Version</button>
-        </div>
-    </div>
-
-    <!-- Mobile Navigation -->
-    <div class="mobile-nav" id="mobileNav">
-        <div class="mobile-nav-content">
-            <div class="mobile-nav-header">
-                <div class="logo">
-                    <div class="logo-icon" style="width: 40px; height: 40px; font-size: 1.2rem;">🌴</div>
-                    <div class="logo-text" style="font-size: 1.2rem;">Palm Beach <span>Pass</span></div>
-                </div>
-                <button class="mobile-nav-close" onclick="toggleMobileMenu()">×</button>
-            </div>
-            <div class="mobile-nav-links">
-                <a href="#passes" class="mobile-nav-link" onclick="navigateToSection('passes')">Passes</a>
-                <a href="#attractions" class="mobile-nav-link" onclick="navigateToSection('attractions')">Attractions</a>
-                <a href="#how-it-works" class="mobile-nav-link" onclick="navigateToSection('how-it-works')">How It Works</a>
-                <a href="customer-passes.html" class="mobile-nav-link">My Passes</a>
-                <a href="customer-account.html" class="mobile-nav-link">Account</a>
-                <a href="#" class="mobile-nav-link" onclick="openMobileVersion()">📱 Mobile App</a>
-            </div>
-        </div>
-    </div>
 
     <!-- Hero Section -->
     <section class="hero">
@@ -1112,7 +617,7 @@
             <p>One pass, endless adventures. Discover 180+ premium attractions, restaurants, and experiences across Palm Beach County.</p>
             <div class="hero-cta">
                 <button class="btn-primary" onclick="scrollToSection('passes')">Get Your Pass</button>
-                <button class="btn-secondary" onclick="scrollToSection('attractions')">Explore Attractions</button>
+                <button class="btn-mobile-test" onclick="testMobileRedirect()">🔧 Test Mobile</button>
             </div>
         </div>
     </section>
@@ -1180,33 +685,6 @@
                 </div>
             </div>
 
-            <!-- 5 Day Pass -->
-            <div class="pass-card" onclick="selectPass('5-day')">
-                <div class="pass-header">
-                    <div class="pass-days">5</div>
-                    <div class="pass-label">Day Pass</div>
-                </div>
-                <div class="pass-body">
-                    <div class="pass-price">
-                        <div class="price-item">
-                            <div class="price-label">Adult</div>
-                            <div class="price-value">$269</div>
-                        </div>
-                        <div class="price-item">
-                            <div class="price-label">Child</div>
-                            <div class="price-value">$209</div>
-                        </div>
-                    </div>
-                    <ul class="pass-features">
-                        <li>Access to all attractions</li>
-                        <li>VIP experiences included</li>
-                        <li>Premium dining benefits</li>
-                        <li>Perfect for vacations</li>
-                    </ul>
-                    <button class="btn-select-pass">Select Pass</button>
-                </div>
-            </div>
-
             <!-- 7 Day Pass -->
             <div class="pass-card" onclick="selectPass('7-day')">
                 <div class="pass-badge">Best Value</div>
@@ -1237,475 +715,93 @@
         </div>
     </section>
 
-    <!-- Attractions Section with Promo Header -->
-    <section class="attractions-preview" id="attractions">
-        <!-- Promotional Header -->
-        <div class="attractions-promo">
-            <div class="promo-content">
-                <h1 class="promo-title">CHOOSE FROM 156 ATTRACTIONS</h1>
-                <h2 class="promo-subtitle">FREE WITH PALM BEACH PASS</h2>
-                <p class="promo-description">Access outback adventures, surfing hotspots, museums and more experiences. One time payment for unlimited access.</p>
-                
-                <div class="promo-stats">
-                    <div class="stat-item">
-                        <span class="stat-number">156+</span>
-                        <div class="stat-label">Attractions</div>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-number">50%</span>
-                        <div class="stat-label">Average Savings</div>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-number">200K+</span>
-                        <div class="stat-label">Happy Visitors</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Map Section - Desktop only -->
-        <div class="attractions-header" style="display: none;">
-            <div class="map-container">
-                <div class="map-view">
-                    <iframe 
-                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d228447.75837592068!2d-80.24045274179685!3d26.628318569685075!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x88d8d5ccb595adc1%3A0x15efc7b51fe16bde!2sPalm%20Beach%20County%2C%20FL!5e0!3m2!1sen!2sus!4v1707410421351!5m2!1sen!2sus"
-                        width="100%"
-                        height="100%"
-                        style="border:0;"
-                        allowfullscreen=""
-                        loading="lazy"
-                        referrerpolicy="no-referrer-when-downgrade">
-                    </iframe>
-                </div>
-            </div>
-        </div>
-
-        <!-- Filter Bar -->
-        <div class="filter-bar">
-            <div class="filter-container">
-                <div class="category-filters">
-                    <button class="category-pill active" onclick="filterCategory('all')">ALL</button>
-                    <button class="category-pill" onclick="filterCategory('family')">FAMILY</button>
-                    <button class="category-pill" onclick="filterCategory('outdoor')">OUTDOOR</button>
-                    <button class="category-pill" onclick="filterCategory('culture')">CULTURE</button>
-                    <button class="category-pill" onclick="filterCategory('special')">SPECIAL</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Attractions Grid -->
-        <div class="attractions-container">
-            <p class="results-count">156 items found</p>
-            
-            <div class="attractions-grid" id="attractionsGrid">
-                <!-- Lion Country Safari -->
-                <div class="attraction-card featured" data-category="family" onclick="openAttraction('lion-safari')">
-                    <div class="attraction-image" style="background: linear-gradient(135deg, #8B4513, #DEB887);">
-                        <div class="image-placeholder">🦁</div>
-                        <span class="category-tag">🦁 Safari</span>
-                    </div>
-                    <div class="attraction-info">
-                        <h3>Lion Country Safari</h3>
-                        <div class="price-row">
-                            <span class="regular-price">Regular price $39.95</span>
-                            <span class="free-badge">FREE</span>
-                        </div>
-                        <p class="attraction-desc">Drive through 4 miles of open range habitat with over 1,000 animals roaming free. Florida's only drive-through safari experience!</p>
-                    </div>
-                </div>
-
-                <!-- Norton Museum -->
-                <div class="attraction-card" data-category="culture" onclick="openAttraction('norton-museum')">
-                    <div class="attraction-image" style="background: linear-gradient(135deg, #4B0082, #8A2BE2);">
-                        <div class="image-placeholder">🎨</div>
-                        <span class="category-tag">🏛️ Museum</span>
-                    </div>
-                    <div class="attraction-info">
-                        <h3>Norton Museum of Art</h3>
-                        <div class="price-row">
-                            <span class="regular-price">Regular price $18</span>
-                            <span class="free-badge">FREE</span>
-                        </div>
-                        <p class="attraction-desc">World-class art collection spanning American, European, and Chinese art.</p>
-                    </div>
-                </div>
-
-                <!-- Rapids Water Park -->
-                <div class="attraction-card" data-category="family" onclick="openAttraction('rapids')">
-                    <div class="attraction-image" style="background: linear-gradient(135deg, #00BFFF, #1E90FF);">
-                        <div class="image-placeholder">💦</div>
-                        <span class="category-tag">💦 Water Park</span>
-                    </div>
-                    <div class="attraction-info">
-                        <h3>Rapids Water Park</h3>
-                        <div class="price-row">
-                            <span class="regular-price">Regular price $34.99</span>
-                            <span class="free-badge">FREE</span>
-                        </div>
-                        <p class="attraction-desc">Thrilling water slides, lazy river, and family-friendly attractions for all ages.</p>
-                    </div>
-                </div>
-
-                <!-- Boca Raton Museum -->
-                <div class="attraction-card" data-category="culture" onclick="openAttraction('boca-museum')">
-                    <div class="attraction-image" style="background: linear-gradient(135deg, #8B7355, #D4AF37);">
-                        <div class="image-placeholder">🏛️</div>
-                        <span class="category-tag">🏛️ Museum</span>
-                    </div>
-                    <div class="attraction-info">
-                        <h3>Boca Raton Museum of Art</h3>
-                        <div class="price-row">
-                            <span class="regular-price">Regular price $18</span>
-                            <span class="free-badge">FREE</span>
-                        </div>
-                        <p class="attraction-desc">Contemporary and modern art collections featuring rotating exhibitions.</p>
-                    </div>
-                </div>
-
-                <!-- Palm Beach Zoo -->
-                <div class="attraction-card" data-category="family" onclick="openAttraction('zoo')">
-                    <div class="attraction-image" style="background: linear-gradient(135deg, #228B22, #90EE90);">
-                        <div class="image-placeholder">🐘</div>
-                        <span class="category-tag">🐘 Zoo</span>
-                    </div>
-                    <div class="attraction-info">
-                        <h3>Palm Beach Zoo & Conservation Society</h3>
-                        <div class="price-row">
-                            <span class="regular-price">Regular price $24.95</span>
-                            <span class="free-badge">FREE</span>
-                        </div>
-                        <p class="attraction-desc">Home to over 900 animals representing species from around the globe.</p>
-                    </div>
-                </div>
-
-                <!-- Flyboard South Florida -->
-                <div class="attraction-card" data-category="outdoor" onclick="openAttraction('flyboard')">
-                    <div class="attraction-image" style="background: linear-gradient(135deg, #1E90FF, #00BFFF);">
-                        <div class="image-placeholder">🏄</div>
-                        <span class="category-tag">🎯 Adventure</span>
-                    </div>
-                    <div class="attraction-info">
-                        <h3>Flyboard South Florida</h3>
-                        <div class="price-row">
-                            <span class="regular-price">Regular price $199</span>
-                            <span class="free-badge">FREE</span>
-                        </div>
-                        <p class="attraction-desc">Experience the thrill of flying above water with flyboard technology.</p>
-                    </div>
-                </div>
-
-                <!-- Morikami Gardens -->
-                <div class="attraction-card featured" data-category="culture" onclick="openAttraction('morikami')">
-                    <div class="attraction-image" style="background: linear-gradient(135deg, #228B22, #32CD32);">
-                        <div class="image-placeholder">🌸</div>
-                        <span class="category-tag">🌸 Gardens</span>
-                    </div>
-                    <div class="attraction-info">
-                        <h3>Morikami Museum & Gardens</h3>
-                        <div class="price-row">
-                            <span class="regular-price">Regular price $15</span>
-                            <span class="free-badge">FREE</span>
-                        </div>
-                        <p class="attraction-desc">Beautiful Japanese gardens and cultural exhibits showcasing Japanese pioneers in Florida.</p>
-                    </div>
-                </div>
-
-                <!-- Young At Art Museum -->
-                <div class="attraction-card" data-category="family" onclick="openAttraction('young-art')">
-                    <div class="attraction-image" style="background: linear-gradient(135deg, #FF69B4, #FFB6C1);">
-                        <div class="image-placeholder">🎨</div>
-                        <span class="category-tag">👨‍👩‍👧‍👦 Family</span>
-                    </div>
-                    <div class="attraction-info">
-                        <h3>Young At Art Museum</h3>
-                        <div class="price-row">
-                            <span class="regular-price">Regular price $14</span>
-                            <span class="free-badge">FREE</span>
-                        </div>
-                        <p class="attraction-desc">Interactive art experiences designed specifically for children and families.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="footer-content">
-            <div class="footer-section">
-                <h3>Palm Beach Pass</h3>
-                <p style="opacity: 0.8; margin-top: 1rem;">Your gateway to experiencing the best of Palm Beach County. One pass, endless memories.</p>
-            </div>
-            
-            <div class="footer-section">
-                <h3>Quick Links</h3>
-                <ul class="footer-links">
-                    <li><a href="#passes">Buy Passes</a></li>
-                    <li><a href="#attractions">View Attractions</a></li>
-                    <li><a href="customer-account.html">My Account</a></li>
-                    <li><a href="customer-passes.html">My Passes</a></li>
-                </ul>
-            </div>
-            
-            <div class="footer-section">
-                <h3>Support</h3>
-                <ul class="footer-links">
-                    <li><a href="#">How It Works</a></li>
-                    <li><a href="#">FAQs</a></li>
-                    <li><a href="#">Contact Us</a></li>
-                    <li><a href="#">Terms & Conditions</a></li>
-                </ul>
-            </div>
-            
-            <div class="footer-section">
-                <h3>Company</h3>
-                <ul class="footer-links">
-                    <li><a href="#">About Us</a></li>
-                    <li><a href="#">Press</a></li>
-                    <li><a href="#">Careers</a></li>
-                    <li><a href="#">Privacy Policy</a></li>
-                </ul>
-            </div>
-        </div>
-        
-        <div class="footer-bottom">
-            <p>&copy; 2025 Palm Beach Pass. All rights reserved. | Designed for Paradise</p>
-        </div>
-    </footer>
-
     <!-- Login Modal -->
     <div class="modal" id="loginModal">
         <div class="modal-content">
             <button class="modal-close" onclick="closeModal()">×</button>
             <h2>Welcome Back</h2>
             
-            <div id="loginForm">
-                <div class="form-group">
-                    <label>Email Address</label>
-                    <input type="email" id="email" placeholder="demo@demo.com" value="demo@demo.com">
-                </div>
-                
-                <div class="form-group">
-                    <label>Password</label>
-                    <input type="password" id="password" placeholder="Enter your password" value="demo">
-                </div>
-                
-                <button class="btn-submit" onclick="handleLogin()">Sign In</button>
-                
-                <div class="form-footer">
-                    <p>Don't have an account? <a href="#">Sign up</a></p>
-                    <p style="margin-top: 1rem; font-size: 0.9rem;">Demo: demo@demo.com / demo</p>
-                </div>
+            <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" id="email" placeholder="demo@demo.com" value="demo@demo.com">
             </div>
             
-            <div id="tfaForm" style="display: none;">
-                <div class="form-group">
-                    <label>Enter Verification Code</label>
-                    <input type="text" id="tfaCode" placeholder="123456" maxlength="6">
-                    <p style="margin-top: 0.5rem; color: var(--text-light); font-size: 0.9rem;">
-                        We've sent a code to your email address
-                    </p>
-                </div>
-                
-                <button class="btn-submit" onclick="handleTFA()">Verify</button>
-                
-                <div class="form-footer">
-                    <p style="font-size: 0.9rem;">Demo code: 123456</p>
-                </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="password" placeholder="Enter your password" value="demo">
+            </div>
+            
+            <button class="btn-submit" onclick="handleLogin()">Sign In</button>
+            
+            <div class="form-footer">
+                <p>Demo: demo@demo.com / demo</p>
             </div>
         </div>
     </div>
 
     <script>
-        // Initialize app - FIXED MOBILE DETECTION
-        let cart = [];
+        // App State
         let isLoggedIn = false;
         let currentUser = null;
-        let isMobileMenuOpen = false;
 
-        // Enhanced Mobile Detection - FIXED
+        // Update debug panel
+        function updateDebugInfo() {
+            document.getElementById('debugUA').textContent = navigator.userAgent.substring(0, 50) + '...';
+            document.getElementById('debugScreen').textContent = window.innerWidth + 'x' + window.innerHeight;
+            document.getElementById('debugMobile').textContent = isMobileDevice() ? 'YES' : 'NO';
+            document.getElementById('debugURL').textContent = window.location.href;
+        }
+
+        // Mobile Detection Function
         function isMobileDevice() {
             const userAgent = navigator.userAgent;
-            const screenWidth = window.innerWidth || screen.width;
-            
-            console.log('Device detection:', {
-                userAgent: userAgent,
-                screenWidth: screenWidth,
-                isMobile: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent),
-                isSmallScreen: screenWidth < 768
-            });
-            
-            // Detect actual mobile devices, not just small screens
-            return (/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent) && screenWidth < 1024) ||
-                   (screenWidth < 600); // Very small screens are likely mobile
+            const isMobile = /iPhone|iPad|iPod|Android|BlackBerry|Opera Mini|IEMobile|Mobile/i.test(userAgent);
+            const isSmallScreen = window.innerWidth < 768;
+            return isMobile || isSmallScreen;
         }
 
-        // Auto-redirect for mobile users - FIXED
-        function handleMobileRedirect() {
-            const isMobile = isMobileDevice();
-            const currentPath = window.location.pathname;
-            const currentSearch = window.location.search;
+        // Test Mobile Redirect
+        function testMobileRedirect() {
+            console.log('Testing mobile redirect...');
+            showMessage('Testing mobile redirect - check console for details', 'info');
             
-            console.log('Mobile redirect check:', {
-                isMobile: isMobile,
-                currentPath: currentPath,
-                isLoggedIn: localStorage.getItem('isLoggedIn') === 'true',
-                hasPasses: !!localStorage.getItem('userPasses')
-            });
+            // Force redirect to mobile
+            const hasAccount = localStorage.getItem('isLoggedIn') === 'true' || localStorage.getItem('userPasses');
             
-            // Only redirect mobile users, and only from main pages
-            if (isMobile && (currentPath.endsWith('index.html') || currentPath.endsWith('/') || currentPath === '/')) {
-                
-                // Check if user has passes or is logged in
-                const hasPassesOrLogin = localStorage.getItem('isLoggedIn') === 'true' || 
-                                        localStorage.getItem('userPasses');
-                
-                if (hasPassesOrLogin) {
-                    console.log('Redirecting to mobile app...');
-                    window.location.href = './mobile.html' + currentSearch;
-                } else {
-                    console.log('Redirecting to mobile purchase...');
-                    window.location.href = './mobile-purchase.html' + currentSearch;
-                }
-                return true; // Indicate redirect happened
+            if (hasAccount) {
+                window.location.href = './mobile.html?test=true';
+            } else {
+                window.location.href = './mobile-purchase.html?test=true';
             }
-            
-            return false; // No redirect
         }
 
-        // Check login status on load
+        // Initialize
         window.addEventListener('load', function() {
-            console.log('Page loaded, checking mobile redirect...');
-            
-            // Try mobile redirect first
-            if (handleMobileRedirect()) {
-                return; // Don't continue with desktop initialization if redirecting
-            }
-            
-            // Desktop initialization
+            console.log('Desktop version loaded');
+            updateDebugInfo();
             checkLoginStatus();
-            updateCartBadge();
             
-            // Show mobile banner for mobile users who stayed on desktop
-            if (isMobileDevice() && !localStorage.getItem('hideMobileBanner')) {
-                showMobileBanner();
-            }
-            
-            // Show map on desktop only
-            if (window.innerWidth > 768) {
-                const mapSection = document.querySelector('.attractions-header');
-                if (mapSection) {
-                    mapSection.style.display = 'block';
-                }
+            // Second mobile check after page load
+            if (isMobileDevice()) {
+                console.log('Mobile device detected on page load - this should not happen!');
+                showMessage('Mobile detected but redirect failed! Using test button above.', 'error');
             }
         });
 
-        function showMobileBanner() {
-            const banner = document.getElementById('mobileBanner');
-            if (banner) {
-                banner.classList.add('show');
-            }
-        }
-
-        function openMobileVersion() {
-            console.log('Opening mobile version...');
-            
-            // Hide banner after interaction
-            localStorage.setItem('hideMobileBanner', 'true');
-            const banner = document.getElementById('mobileBanner');
-            if (banner) {
-                banner.classList.remove('show');
-            }
-            
-            // On mobile, redirect directly
-            if (isMobileDevice()) {
-                const hasPassesOrLogin = localStorage.getItem('isLoggedIn') === 'true' || 
-                                        localStorage.getItem('userPasses');
-                                        
-                if (hasPassesOrLogin) {
-                    window.location.href = './mobile.html';
-                } else {
-                    window.location.href = './mobile-purchase.html';
-                }
-            } else {
-                // On desktop, open mobile demo in popup
-                const width = 375;
-                const height = 812;
-                const left = (screen.width / 2) - (width / 2);
-                const top = (screen.height / 2) - (height / 2);
-                
-                window.open(
-                    './mobile.html?demo=true',
-                    'MobileDemo',
-                    `width=${width},height=${height},left=${left},top=${top},resizable=no,scrollbars=no,toolbar=no,menubar=no,location=no,status=no`
-                );
-            }
-        }
-
-        // Mobile menu functions
-        function toggleMobileMenu() {
-            const mobileNav = document.getElementById('mobileNav');
-            isMobileMenuOpen = !isMobileMenuOpen;
-            
-            if (isMobileMenuOpen) {
-                mobileNav.classList.add('active');
-                document.body.style.overflow = 'hidden';
-            } else {
-                mobileNav.classList.remove('active');
-                document.body.style.overflow = '';
-            }
-        }
-
-        function navigateToSection(sectionId) {
-            toggleMobileMenu(); // Close menu
-            setTimeout(() => {
-                scrollToSection(sectionId);
-            }, 300);
-        }
-
-        // Navigation functions
-        function scrollToTop() {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        function scrollToSection(sectionId) {
-            const section = document.getElementById(sectionId);
-            if (section) {
-                section.scrollIntoView({ behavior: 'smooth' });
-            }
-        }
-
-        // Modal functions
+        // Login functions
         function showLogin() {
             document.getElementById('loginModal').classList.add('active');
         }
 
         function closeModal() {
             document.getElementById('loginModal').classList.remove('active');
-            // Reset forms
-            document.getElementById('loginForm').style.display = 'block';
-            document.getElementById('tfaForm').style.display = 'none';
         }
 
-        // Login handling
         function handleLogin() {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             
             if (email === 'demo@demo.com' && password === 'demo') {
-                // Show 2FA form
-                document.getElementById('loginForm').style.display = 'none';
-                document.getElementById('tfaForm').style.display = 'block';
-            } else {
-                showMessage('Invalid credentials. Please use demo@demo.com / demo', 'error');
-            }
-        }
-
-        function handleTFA() {
-            const code = document.getElementById('tfaCode').value;
-            
-            if (code === '123456') {
-                // Successful login
                 isLoggedIn = true;
                 currentUser = {
                     email: 'demo@demo.com',
@@ -1725,7 +821,7 @@
                     }, 1500);
                 }
             } else {
-                showMessage('Invalid verification code. Please use 123456', 'error');
+                showMessage('Invalid credentials. Please use demo@demo.com / demo', 'error');
             }
         }
 
@@ -1743,157 +839,46 @@
             if (loginBtn && isLoggedIn) {
                 loginBtn.textContent = 'My Account';
                 loginBtn.onclick = function() {
-                    window.location.href = 'customer-account.html';
+                    if (isMobileDevice()) {
+                        window.location.href = './mobile.html';
+                    } else {
+                        window.location.href = 'customer-account.html';
+                    }
                 };
             }
         }
 
-        // Pass selection - Enhanced for mobile
+        // Pass selection
         function selectPass(passType) {
             if (!isLoggedIn) {
                 showLogin();
-                showMessage('Please sign in to purchase a pass', 'info');
                 return;
             }
             
-            // Check if on mobile and redirect appropriately
             if (isMobileDevice()) {
                 sessionStorage.setItem('selectedPass', passType);
                 window.location.href = './mobile-purchase.html?pass=' + passType;
                 return;
             }
             
-            // Desktop flow
-            const passes = {
-                '1-day': { name: '1 Day Pass', adult: 89, child: 69 },
-                '3-day': { name: '3 Day Pass', adult: 189, child: 149 },
-                '5-day': { name: '5 Day Pass', adult: 269, child: 209 },
-                '7-day': { name: '7 Day Pass', adult: 329, child: 259 }
-            };
-            
-            cart = [passes[passType]];
-            updateCartBadge();
-            showMessage('Pass added to cart! Redirecting to checkout...', 'success');
-            
-            // Store cart and redirect
-            localStorage.setItem('cart', JSON.stringify(cart));
+            showMessage('Pass selected! Redirecting to checkout...', 'success');
             setTimeout(() => {
                 window.location.href = './checkout.html';
             }, 1500);
         }
 
-        // Cart functions
-        function showCart() {
-            if (cart.length === 0) {
-                showMessage('Your cart is empty', 'info');
-                return;
-            }
-            window.location.href = './checkout.html';
-        }
-
-        function updateCartBadge() {
-            const badge = document.getElementById('cartCount');
-            const savedCart = localStorage.getItem('cart');
-            if (savedCart) {
-                cart = JSON.parse(savedCart);
-            }
-            
-            if (cart.length > 0) {
-                badge.style.display = 'flex';
-                badge.textContent = cart.length;
-            } else {
-                badge.style.display = 'none';
+        // Navigation
+        function scrollToSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            if (section) {
+                section.scrollIntoView({ behavior: 'smooth' });
             }
         }
 
-        // Attraction filtering
-        function filterAttractions(category) {
-            // Update active button
-            const buttons = document.querySelectorAll('.category-pill');
-            buttons.forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-            
-            // Filter attractions
-            const cards = document.querySelectorAll('.attraction-card');
-            cards.forEach(card => {
-                if (category === 'all' || card.dataset.category === category) {
-                    card.style.display = 'block';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-            
-            // Update results count
-            const visibleCards = document.querySelectorAll('.attraction-card[style*="block"], .attraction-card:not([style*="none"])');
-            const count = category === 'all' ? 156 : visibleCards.length;
-            document.querySelector('.results-count').textContent = `${count} items found`;
-        }
-
-        // Enhanced functions for attractions
-        function filterCategory(category) {
-            filterAttractions(category);
-        }
-
-        function openAttraction(attractionId) {
-            const attractionDetails = {
-                'lion-safari': {
-                    name: 'Lion Country Safari',
-                    price: '$39.95',
-                    description: 'Drive-through safari with over 1,000 animals in natural habitats.'
-                },
-                'norton-museum': {
-                    name: 'Norton Museum of Art',
-                    price: '$18.00',
-                    description: 'World-class art collection featuring American, European, and Chinese masterpieces.'
-                },
-                'rapids': {
-                    name: 'Rapids Water Park',
-                    price: '$34.99',
-                    description: 'Thrilling water slides, lazy river, and family-friendly attractions.'
-                },
-                'boca-museum': {
-                    name: 'Boca Raton Museum of Art',
-                    price: '$18.00',
-                    description: 'Contemporary art museum with rotating exhibitions and educational programs.'
-                },
-                'zoo': {
-                    name: 'Palm Beach Zoo',
-                    price: '$24.95',
-                    description: 'Home to over 900 animals with conservation programs.'
-                },
-                'flyboard': {
-                    name: 'Flyboard South Florida',
-                    price: '$199.00',
-                    description: 'Experience the thrill of flying above water with flyboard technology.'
-                },
-                'morikami': {
-                    name: 'Morikami Museum & Gardens',
-                    price: '$15.00',
-                    description: 'Beautiful Japanese gardens and cultural exhibits.'
-                },
-                'young-art': {
-                    name: 'Young At Art Museum',
-                    price: '$14.00',
-                    description: 'Interactive art museum designed for children and families.'
-                }
-            };
-            
-            const details = attractionDetails[attractionId];
-            if (details) {
-                showMessage(`🎫 ${details.name} | Regular: ${details.price} | FREE with Palm Beach Pass! | ${details.description}`, 'info');
-            } else {
-                showMessage(`Opening detailed view for this attraction - FREE with your Palm Beach Pass!`, 'success');
-            }
-        }
-
-        // Message display with enhanced styling
+        // Message display
         function showMessage(message, type = 'success') {
             const messageEl = document.createElement('div');
             messageEl.className = 'success-message';
-            messageEl.style.maxWidth = '400px';
-            messageEl.style.fontSize = '0.9rem';
-            messageEl.style.lineHeight = '1.4';
-            messageEl.style.zIndex = '4000';
             
             if (type === 'error') {
                 messageEl.style.background = 'var(--coral)';
@@ -1910,51 +895,22 @@
             }, 4000);
         }
 
-        // Handle smooth scrolling for nav links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({ behavior: 'smooth' });
-                }
-            });
-        });
-
         // Window resize handler
         window.addEventListener('resize', () => {
-            if (window.innerWidth > 1024 && isMobileMenuOpen) {
-                toggleMobileMenu();
-            }
+            updateDebugInfo();
             
-            // Show/hide map based on screen size
-            const mapSection = document.querySelector('.attractions-header');
-            if (mapSection) {
-                if (window.innerWidth > 768) {
-                    mapSection.style.display = 'block';
-                } else {
-                    mapSection.style.display = 'none';
-                }
+            // Check if became mobile size
+            if (isMobileDevice()) {
+                console.log('Window resized to mobile size');
+                showMessage('Mobile size detected - test mobile button should work now', 'info');
             }
         });
 
-        // Close mobile menu when clicking outside
-        const mobileNav = document.getElementById('mobileNav');
-        if (mobileNav) {
-            mobileNav.addEventListener('click', (e) => {
-                if (e.target.id === 'mobileNav') {
-                    toggleMobileMenu();
-                }
-            });
-        }
-
-        // Debug logging
-        console.log('Palm Beach Pass - Desktop Version Loaded', {
+        console.log('Palm Beach Pass - Desktop Version with Mobile Detection', {
             userAgent: navigator.userAgent,
             screenSize: { width: window.innerWidth, height: window.innerHeight },
             isMobileDevice: isMobileDevice(),
-            currentURL: window.location.href,
-            hasLocalStorage: typeof(Storage) !== 'undefined'
+            currentURL: window.location.href
         });
     </script>
 </body>
