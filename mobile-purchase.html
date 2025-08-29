@@ -658,14 +658,13 @@
 
         // Initialize
         window.onload = function() {
-            console.log('Mobile Purchase Flow loaded');
+            console.log('✅ MOBILE PURCHASE FLOW LOADED');
             
             // Check if redirected from desktop with a specific pass
             const urlParams = new URLSearchParams(window.location.search);
             const passParam = urlParams.get('pass');
             if (passParam) {
                 console.log('Pre-selected pass from URL:', passParam);
-                // Highlight the selected pass
                 highlightPass(passParam);
             }
         };
@@ -699,8 +698,10 @@
                 card.style.border = '';
             });
             
-            event.currentTarget.style.transform = 'scale(1.02)';
-            event.currentTarget.style.border = '3px solid var(--gold)';
+            if (event && event.currentTarget) {
+                event.currentTarget.style.transform = 'scale(1.02)';
+                event.currentTarget.style.border = '3px solid var(--gold)';
+            }
             
             // Haptic feedback simulation
             if (navigator.vibrate) {
@@ -712,7 +713,9 @@
             // Auto-scroll to CTA
             setTimeout(() => {
                 document.querySelector('.bottom-cta').scrollIntoView({ behavior: 'smooth' });
-                event.currentTarget.style.transform = 'scale(1)';
+                if (event && event.currentTarget) {
+                    event.currentTarget.style.transform = 'scale(1)';
+                }
             }, 800);
         }
 
@@ -818,12 +821,10 @@
             });
         });
 
-        // Debug info
-        console.log('Mobile Purchase Flow:', {
+        console.log('✅ MOBILE PURCHASE FLOW READY', {
             userAgent: navigator.userAgent,
             screenSize: { width: screen.width, height: screen.height },
             hasVibration: 'vibrate' in navigator,
-            hasLocalStorage: typeof(Storage) !== 'undefined',
             currentURL: window.location.href
         });
     </script>
