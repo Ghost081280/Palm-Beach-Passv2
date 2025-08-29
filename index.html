@@ -1728,4 +1728,392 @@
             document.getElementById('loginModal').classList.remove('active');
             // Reset forms
             document.getElementById('loginForm').style.display = 'block';
-            document.getElementById('tfaForm').style.display
+            document.getElementById('tfaForm').style.display = 'none';
+        }
+
+        // Login handling
+        function handleLogin() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            if (email === 'demo@demo.com' && password === 'demo') {
+                // Show 2FA form
+                document.getElementById('loginForm').style.display = 'none';
+                document.getElementById('tfaForm').style.display = 'block';
+            } else {
+                showMessage('Invalid credentials. Please use demo@demo.com / demo', 'error');
+            }
+        }
+
+        function handleTFA() {
+            const code = document.getElementById('tfaCode').value;
+            
+            if (code === '123456') {
+                // Successful login
+                isLoggedIn = true;
+                currentUser = {
+                    email: 'demo@demo.com',
+                    name: 'Demo User'
+                };
+                localStorage.setItem('isLoggedIn', 'true');
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                
+                closeModal();
+                updateUIForLoggedInUser();
+                showMessage('Welcome back! You are now signed in.', 'success');
+            } else {
+                showMessage('Invalid verification code. Please use 123456', 'error');
+            }
+        }
+
+        function checkLoginStatus() {
+            const loggedIn = localStorage.getItem('isLoggedIn');
+            if (loggedIn === 'true') {
+                isLoggedIn = true;
+                currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+                updateUIForLoggedInUser();
+            }
+        }
+
+        function updateUIForLoggedInUser() {
+            const loginBtn = document.querySelector('.btn-login');
+            if (loginBtn && isLoggedIn) {
+                loginBtn.textContent = 'My Account';
+                loginBtn.onclick = function() {
+                    window.location.href = 'customer-account.html';
+                };
+            }
+        }
+
+        // Pass selection
+        function selectPass(passType) {
+            if (!isLoggedIn) {
+                showLogin();
+                showMessage('Please sign in to purchase a pass', 'info');
+                return;
+            }
+            
+            // Add to cart
+            const passes = {
+                '1-day': { name: '1 Day Pass', adult: 89, child: 69 },
+                '3-day': { name: '3 Day Pass', adult: 189, child: 149 },
+                '5-day': { name: '5 Day Pass', adult: 269, child: 209 },
+                '7-day': { name: '7 Day Pass', adult: 329, child: 259 }
+            };
+            
+            cart = [passes[passType]];
+            updateCartBadge();
+            showMessage('Pass added to cart! Redirecting to checkout...', 'success');
+            
+            // Store cart and redirect
+            localStorage.setItem('cart', JSON.stringify(cart));
+            setTimeout(() => {
+                window.location.href = 'checkout.html';
+            }, 1500);
+        }
+
+        // Cart functions
+        function showCart() {
+            if (cart.length === 0) {
+                showMessage('Your cart is empty', 'info');
+                return;
+            }
+            window.location.href = 'checkout.html';
+        }
+
+        function updateCartBadge() {
+            const badge = document.getElementById('cartCount');
+            const savedCart = localStorage.getItem('cart');
+            if (savedCart) {
+                cart = JSON.parse(savedCart);
+            }
+            
+            if (cart.length > 0) {
+                badge.style.display = 'flex';
+                badge.textContent = cart.length;
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
+        // Attraction filtering
+        function filterAttractions(category) {
+            // Update active button
+            const buttons = document.querySelectorAll('.category-pill');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Filter attractions
+            const cards = document.querySelectorAll('.attraction-card');
+            cards.forEach(card => {
+                if (category === 'all' || card.dataset.category === category) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+            
+            // Update results count
+            const visibleCards = document.querySelectorAll('.attraction-card[style*="block"], .attraction-card:not([style*="none"])');
+            const count = category === 'all' ? 156 : visibleCards.length;
+            document.querySelector('.results-count').textContent = `${count} items found`;
+        }
+
+        // Enhanced functions for attractions
+        function filterCategory(category) {
+            filterAttractions(category);
+        }
+
+        function toggleFilters() {
+            showMessage('Advanced filters panel would open here - filter by price range, ratings, accessibility options, and more!');
+        }
+
+        function sortAttractions(sortBy) {
+            const grid = document.getElementById('attractionsGrid');
+            const cards = Array.from(grid.children);
+            
+            cards.sort((a, b) => {
+                switch(sortBy) {
+                    case 'rating':
+                        // Mock rating sort
+                        return Math.random() - 0.5;
+                    case 'distance':
+                        // Mock distance sort
+                        return Math.random() - 0.5;
+                    case 'price':
+                    default:
+                        // Extract price from regular price text
+                        const priceA = parseFloat(a.querySelector('.regular-price').textContent.replace(/[^0-9.]/g, '')) || 0;
+                        const priceB = parseFloat(b.querySelector('.regular-price').textContent.replace(/[^0-9.]/g, '')) || 0;
+                        return priceB - priceA; // High to low
+                }
+            });
+            
+            // Clear and re-append sorted cards
+            grid.innerHTML = '';
+            cards.forEach(card => grid.appendChild(card));
+            
+            showMessage(`Attractions sorted by ${sortBy}`);
+        }
+
+        function setView(viewType) {
+            const buttons = document.querySelectorAll('.view-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            const grid = document.getElementById('attractionsGrid');
+            if (viewType === 'list') {
+                grid.style.gridTemplateColumns = '1fr';
+                grid.style.gap = '1rem';
+                // Make featured cards span 1 column in list view
+                document.querySelectorAll('.attraction-card.featured').forEach(card => {
+                    card.style.gridColumn = 'span 1';
+                });
+                showMessage('Switched to list view');
+            } else {
+                grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(300px, 1fr))';
+                grid.style.gap = '2rem';
+                // Restore featured cards spanning
+                document.querySelectorAll('.attraction-card.featured').forEach(card => {
+                    card.style.gridColumn = 'span 2';
+                });
+                showMessage('Switched to grid view');
+            }
+        }
+
+        function focusAttraction(attractionId) {
+            // Update active marker
+            document.querySelectorAll('.map-marker').forEach(marker => {
+                marker.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+            
+            // Find and highlight corresponding attraction card
+            const attractionNames = {
+                'lion': 'Lion Country Safari',
+                'norton': 'Norton Museum',
+                'boynton': 'Boynton Beach Dive Center',
+                'zoo': 'Palm Beach Zoo',
+                'rapids': 'Rapids Water Park',
+                'seaquarium': 'Seaquarium',
+                'worth': 'Worth Avenue',
+                'flyboard': 'Flyboard South Florida',
+                'morikami': 'Morikami',
+                'spady': 'Spady',
+                'boca': 'Boca Raton Museum',
+                'young-art': 'Young At Art Museum'
+            };
+            
+            const attractionName = attractionNames[attractionId];
+            if (attractionName) {
+                const cards = document.querySelectorAll('.attraction-card');
+                cards.forEach(card => {
+                    card.style.transform = '';
+                    card.style.boxShadow = '';
+                });
+                
+                // Find and highlight the matching card
+                const matchingCard = Array.from(cards).find(card => 
+                    card.querySelector('h3').textContent.includes(attractionName.split(' ')[0])
+                );
+                
+                if (matchingCard) {
+                    matchingCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    matchingCard.style.transform = 'scale(1.02)';
+                    matchingCard.style.boxShadow = '0 20px 60px rgba(255,107,107,0.3)';
+                    
+                    setTimeout(() => {
+                        matchingCard.style.transform = '';
+                        matchingCard.style.boxShadow = '';
+                    }, 2000);
+                }
+                
+                showMessage(`Selected: ${attractionName}`);
+            }
+        }
+
+        function openAttraction(attractionId) {
+            // Enhanced attraction detail preview
+            const attractionDetails = {
+                'seaquarium': {
+                    name: 'Palm Beach Seaquarium',
+                    price: '$29.95',
+                    description: 'Underwater wonderland with marine life exhibits, dolphin shows, and interactive experiences.'
+                },
+                'lion-safari': {
+                    name: 'Lion Country Safari',
+                    price: '$39.95',
+                    description: 'Drive-through safari with over 1,000 animals in natural habitats.'
+                },
+                'norton-museum': {
+                    name: 'Norton Museum of Art',
+                    price: '$18.00',
+                    description: 'World-class art collection featuring American, European, and Chinese masterpieces.'
+                },
+                'boca-museum': {
+                    name: 'Boca Raton Museum of Art',
+                    price: '$18.00',
+                    description: 'Contemporary art museum with rotating exhibitions and educational programs.'
+                },
+                'flyboard': {
+                    name: 'Flyboard South Florida',
+                    price: '$199.00',
+                    description: 'Experience the thrill of flying above water with flyboard technology.'
+                },
+                'young-art': {
+                    name: 'Young At Art Museum',
+                    price: '$14.00',
+                    description: 'Interactive art museum designed for children and families.'
+                }
+            };
+            
+            const details = attractionDetails[attractionId];
+            if (details) {
+                showMessage(`🎫 ${details.name} | Regular: ${details.price} | FREE with Palm Beach Pass! | ${details.description}`, 'info');
+            } else {
+                showMessage(`Opening detailed view for this attraction - FREE with your Palm Beach Pass!`, 'success');
+            }
+        }
+
+        // Message display with enhanced styling
+        function showMessage(message, type = 'success') {
+            const messageEl = document.createElement('div');
+            messageEl.className = 'success-message';
+            messageEl.style.maxWidth = '400px';
+            messageEl.style.fontSize = '0.9rem';
+            messageEl.style.lineHeight = '1.4';
+            
+            if (type === 'error') {
+                messageEl.style.background = 'var(--coral)';
+            } else if (type === 'info') {
+                messageEl.style.background = 'var(--ocean-blue)';
+            }
+            
+            messageEl.textContent = message;
+            document.body.appendChild(messageEl);
+            
+            setTimeout(() => {
+                messageEl.style.transform = 'translateX(100%)';
+                setTimeout(() => messageEl.remove(), 300);
+            }, 4000);
+        }
+
+        // Handle smooth scrolling for nav links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+
+        // Enhanced interaction feedback
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add subtle animation to attraction cards on scroll
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+
+            // Observe all attraction cards
+            document.querySelectorAll('.attraction-card').forEach(card => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                observer.observe(card);
+            });
+
+            // Add click effects to buttons
+            document.querySelectorAll('button, .btn-primary, .btn-secondary').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    // Create ripple effect
+                    const ripple = document.createElement('span');
+                    const rect = this.getBoundingClientRect();
+                    const size = Math.max(rect.width, rect.height);
+                    const x = e.clientX - rect.left - size / 2;
+                    const y = e.clientY - rect.top - size / 2;
+                    
+                    ripple.style.width = ripple.style.height = size + 'px';
+                    ripple.style.left = x + 'px';
+                    ripple.style.top = y + 'px';
+                    ripple.style.position = 'absolute';
+                    ripple.style.borderRadius = '50%';
+                    ripple.style.background = 'rgba(255,255,255,0.5)';
+                    ripple.style.transform = 'scale(0)';
+                    ripple.style.animation = 'ripple 0.6s linear';
+                    ripple.style.pointerEvents = 'none';
+                    
+                    this.style.position = 'relative';
+                    this.style.overflow = 'hidden';
+                    this.appendChild(ripple);
+                    
+                    setTimeout(() => ripple.remove(), 600);
+                });
+            });
+        });
+
+        // Add CSS for ripple animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes ripple {
+                to {
+                    transform: scale(4);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
