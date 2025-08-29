@@ -5,44 +5,82 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Palm Beach Pass - Your Gateway to Paradise</title>
     
-    <!-- Immediate Mobile Redirect Script - This runs FIRST -->
+    <!-- CRITICAL: Mobile Detection and Redirect - This MUST run FIRST -->
     <script>
-        // IMMEDIATE MOBILE CHECK - Runs before page loads
+        // IMMEDIATE MOBILE DETECTION AND REDIRECT
         (function() {
-            var userAgent = navigator.userAgent;
-            var isMobile = /iPhone|iPad|iPod|Android|BlackBerry|Opera Mini|IEMobile|Mobile/i.test(userAgent);
-            var isSmallScreen = window.innerWidth < 768;
-            var isActualMobile = isMobile || isSmallScreen;
+            // Mobile detection function
+            function isMobileDevice() {
+                var userAgent = navigator.userAgent || navigator.vendor || window.opera;
+                
+                // Check for mobile user agents
+                var isMobileUA = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini|mobile|tablet/i.test(userAgent.toLowerCase());
+                
+                // Check screen size
+                var isSmallScreen = window.innerWidth <= 768;
+                
+                // Check touch capability
+                var hasTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+                
+                return isMobileUA || (isSmallScreen && hasTouch);
+            }
             
-            console.log('Immediate mobile check:', {
-                userAgent: userAgent,
-                isMobile: isMobile,
-                isSmallScreen: isSmallScreen,
+            // Log detection results
+            var debugInfo = {
+                userAgent: navigator.userAgent,
+                isMobile: isMobileDevice(),
                 screenWidth: window.innerWidth,
-                shouldRedirect: isActualMobile
-            });
+                screenHeight: window.innerHeight,
+                touchPoints: navigator.maxTouchPoints,
+                platform: navigator.platform,
+                vendor: navigator.vendor
+            };
             
-            if (isActualMobile) {
-                console.log('Mobile detected - redirecting immediately');
+            console.log('Mobile Detection Results:', debugInfo);
+            
+            // Store debug info for later display
+            window.mobileDebugInfo = debugInfo;
+            
+            // PERFORM REDIRECT IF MOBILE
+            if (isMobileDevice()) {
+                console.log('MOBILE DETECTED - Redirecting...');
                 
-                // Check if user has passes or is logged in
-                var hasAccount = localStorage.getItem('isLoggedIn') === 'true' || localStorage.getItem('userPasses');
-                
-                if (hasAccount) {
-                    console.log('User has account - going to mobile app');
-                    window.location.href = './mobile.html';
-                } else {
-                    console.log('New user - going to mobile purchase');
-                    window.location.href = './mobile-purchase.html';
+                // Check if user has account
+                var hasAccount = false;
+                try {
+                    hasAccount = localStorage.getItem('isLoggedIn') === 'true' || 
+                                localStorage.getItem('userPasses') !== null;
+                } catch(e) {
+                    console.error('LocalStorage error:', e);
                 }
                 
-                // Stop page loading
-                return false;
+                // Determine redirect URL
+                var redirectUrl = hasAccount ? 'mobile.html' : 'mobile-purchase.html';
+                
+                console.log('Redirecting to:', redirectUrl);
+                
+                // Perform immediate redirect
+                window.location.replace(redirectUrl);
+                
+                // Stop all execution
+                throw new Error('Redirecting to mobile version');
+            } else {
+                console.log('DESKTOP DETECTED - Continue loading');
             }
         })();
     </script>
     
     <style>
+        /* Show loading state initially */
+        body {
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        body.loaded {
+            opacity: 1;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -168,15 +206,6 @@
             background: var(--ocean-blue);
             transform: translateY(-2px);
             box-shadow: var(--shadow);
-        }
-
-        /* Mobile Banner */
-        .mobile-test-banner {
-            background: linear-gradient(135deg, var(--coral), var(--gold));
-            color: white;
-            padding: 1rem;
-            text-align: center;
-            font-weight: 600;
         }
 
         /* Hero Section */
@@ -421,8 +450,13 @@
             padding: 1rem;
             border-radius: 10px;
             font-size: 0.8rem;
-            max-width: 300px;
+            max-width: 350px;
             z-index: 10000;
+            font-family: monospace;
+        }
+
+        .debug-panel strong {
+            color: #00ff00;
         }
 
         /* Success Message */
@@ -578,16 +612,14 @@
 <body>
     <!-- Debug Panel -->
     <div class="debug-panel" id="debugPanel">
-        <strong>Debug Info:</strong><br>
-        User Agent: <span id="debugUA"></span><br>
-        Screen: <span id="debugScreen"></span><br>
-        Mobile: <span id="debugMobile"></span><br>
-        URL: <span id="debugURL"></span>
-    </div>
-
-    <!-- Mobile Test Banner -->
-    <div class="mobile-test-banner">
-        🚨 If you're on mobile and seeing this, the mobile detection isn't working! 🚨
+        <strong>🔍 Debug Info:</strong><br>
+        <strong>Device:</strong> <span id="debugDevice">DESKTOP</span><br>
+        <strong>User Agent:</strong> <span id="debugUA"></span><br>
+        <strong>Screen:</strong> <span id="debugScreen"></span><br>
+        <strong>Touch:</strong> <span id="debugTouch"></span><br>
+        <strong>Mobile Detection:</strong> <span id="debugMobile"></span><br>
+        <strong>URL:</strong> <span id="debugURL"></span><br>
+        <strong>Platform:</strong> <span id="debugPlatform"></span>
     </div>
 
     <!-- Navigation -->
@@ -617,7 +649,7 @@
             <p>One pass, endless adventures. Discover 180+ premium attractions, restaurants, and experiences across Palm Beach County.</p>
             <div class="hero-cta">
                 <button class="btn-primary" onclick="scrollToSection('passes')">Get Your Pass</button>
-                <button class="btn-mobile-test" onclick="testMobileRedirect()">🔧 Test Mobile</button>
+                <button class="btn-mobile-test" onclick="testMobileRedirect()">📱 Force Mobile View</button>
             </div>
         </div>
     </section>
@@ -744,48 +776,47 @@
         let isLoggedIn = false;
         let currentUser = null;
 
+        // Desktop confirmation - if we reach this point, we're on desktop
+        console.log('✅ DESKTOP VERSION LOADED SUCCESSFULLY');
+        
+        // Show the page content
+        document.addEventListener('DOMContentLoaded', function() {
+            document.body.classList.add('loaded');
+        });
+
         // Update debug panel
         function updateDebugInfo() {
+            const debugInfo = window.mobileDebugInfo || {};
+            
+            document.getElementById('debugDevice').textContent = 'DESKTOP';
             document.getElementById('debugUA').textContent = navigator.userAgent.substring(0, 50) + '...';
             document.getElementById('debugScreen').textContent = window.innerWidth + 'x' + window.innerHeight;
-            document.getElementById('debugMobile').textContent = isMobileDevice() ? 'YES' : 'NO';
-            document.getElementById('debugURL').textContent = window.location.href;
-        }
-
-        // Mobile Detection Function
-        function isMobileDevice() {
-            const userAgent = navigator.userAgent;
-            const isMobile = /iPhone|iPad|iPod|Android|BlackBerry|Opera Mini|IEMobile|Mobile/i.test(userAgent);
-            const isSmallScreen = window.innerWidth < 768;
-            return isMobile || isSmallScreen;
+            document.getElementById('debugTouch').textContent = navigator.maxTouchPoints || 0;
+            document.getElementById('debugMobile').textContent = debugInfo.isMobile ? 'YES (but override)' : 'NO';
+            document.getElementById('debugURL').textContent = window.location.pathname;
+            document.getElementById('debugPlatform').textContent = navigator.platform;
         }
 
         // Test Mobile Redirect
         function testMobileRedirect() {
-            console.log('Testing mobile redirect...');
-            showMessage('Testing mobile redirect - check console for details', 'info');
+            console.log('Force redirecting to mobile...');
+            showMessage('Forcing mobile redirect...', 'info');
             
             // Force redirect to mobile
             const hasAccount = localStorage.getItem('isLoggedIn') === 'true' || localStorage.getItem('userPasses');
             
             if (hasAccount) {
-                window.location.href = './mobile.html?test=true';
+                window.location.href = 'mobile.html';
             } else {
-                window.location.href = './mobile-purchase.html?test=true';
+                window.location.href = 'mobile-purchase.html';
             }
         }
 
         // Initialize
         window.addEventListener('load', function() {
-            console.log('Desktop version loaded');
+            console.log('Desktop version initialized');
             updateDebugInfo();
             checkLoginStatus();
-            
-            // Second mobile check after page load
-            if (isMobileDevice()) {
-                console.log('Mobile device detected on page load - this should not happen!');
-                showMessage('Mobile detected but redirect failed! Using test button above.', 'error');
-            }
         });
 
         // Login functions
@@ -813,13 +844,6 @@
                 closeModal();
                 updateUIForLoggedInUser();
                 showMessage('Welcome back! You are now signed in.', 'success');
-                
-                // Check if mobile and redirect
-                if (isMobileDevice()) {
-                    setTimeout(() => {
-                        window.location.href = './mobile.html';
-                    }, 1500);
-                }
             } else {
                 showMessage('Invalid credentials. Please use demo@demo.com / demo', 'error');
             }
@@ -839,11 +863,7 @@
             if (loginBtn && isLoggedIn) {
                 loginBtn.textContent = 'My Account';
                 loginBtn.onclick = function() {
-                    if (isMobileDevice()) {
-                        window.location.href = './mobile.html';
-                    } else {
-                        window.location.href = 'customer-account.html';
-                    }
+                    window.location.href = 'customer-account.html';
                 };
             }
         }
@@ -855,15 +875,9 @@
                 return;
             }
             
-            if (isMobileDevice()) {
-                sessionStorage.setItem('selectedPass', passType);
-                window.location.href = './mobile-purchase.html?pass=' + passType;
-                return;
-            }
-            
             showMessage('Pass selected! Redirecting to checkout...', 'success');
             setTimeout(() => {
-                window.location.href = './checkout.html';
+                window.location.href = 'checkout.html';
             }, 1500);
         }
 
@@ -898,18 +912,11 @@
         // Window resize handler
         window.addEventListener('resize', () => {
             updateDebugInfo();
-            
-            // Check if became mobile size
-            if (isMobileDevice()) {
-                console.log('Window resized to mobile size');
-                showMessage('Mobile size detected - test mobile button should work now', 'info');
-            }
         });
 
-        console.log('Palm Beach Pass - Desktop Version with Mobile Detection', {
+        console.log('Palm Beach Pass - Desktop Version Loaded', {
             userAgent: navigator.userAgent,
             screenSize: { width: window.innerWidth, height: window.innerHeight },
-            isMobileDevice: isMobileDevice(),
             currentURL: window.location.href
         });
     </script>
