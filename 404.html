@@ -59,6 +59,17 @@
             background: #006B7D;
             color: white;
         }
+        .debug-info {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 0.5rem;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            max-width: 300px;
+        }
     </style>
 </head>
 <body>
@@ -68,23 +79,48 @@
     <div class="spinner"></div>
     <a href="/" class="fallback-link" id="fallbackLink">Go to Home</a>
 
+    <div class="debug-info" id="debugInfo"></div>
+
     <script>
-        // GitHub Pages SPA redirect script - FIXED
+        // Enhanced GitHub Pages SPA redirect script
         (function() {
+            console.log('404 Handler - Starting redirect logic');
+            
             const currentPath = window.location.pathname;
             const currentSearch = window.location.search;
             const currentHash = window.location.hash;
+            const hostname = window.location.hostname;
             
-            console.log('404 Handler - Current path:', currentPath);
+            console.log('Current location:', {
+                pathname: currentPath,
+                search: currentSearch,
+                hash: currentHash,
+                hostname: hostname,
+                fullURL: window.location.href
+            });
+            
+            // Mobile Detection Function
+            function isMobileDevice() {
+                const userAgent = navigator.userAgent;
+                const screenWidth = window.innerWidth || screen.width;
+                
+                const isMobile = (/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent) && screenWidth < 1024) ||
+                               (screenWidth < 600);
+                
+                console.log('Mobile detection:', {
+                    userAgent: userAgent,
+                    screenWidth: screenWidth,
+                    isMobile: isMobile
+                });
+                
+                return isMobile;
+            }
             
             // Get base path for GitHub Pages
             function getBasePath() {
-                const hostname = window.location.hostname;
-                const pathname = window.location.pathname;
-                
                 // For GitHub Pages (username.github.io/repo-name)
                 if (hostname.includes('github.io')) {
-                    const pathParts = pathname.split('/').filter(part => part);
+                    const pathParts = currentPath.split('/').filter(part => part);
                     if (pathParts.length > 0 && !pathParts[0].includes('.html')) {
                         return `/${pathParts[0]}/`;
                     }
@@ -94,23 +130,21 @@
                 return '/';
             }
             
-            // Simple mobile detection
-            function isMobile() {
-                const userAgent = navigator.userAgent;
-                return /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent) ||
-                       (window.screen && window.screen.width < 768);
-            }
-            
             const basePath = getBasePath();
-            console.log('Base path:', basePath);
+            console.log('Base path determined:', basePath);
             
             // Update fallback link
             document.getElementById('fallbackLink').href = basePath;
             
-            // Determine the correct redirect
-            let redirectTo = basePath; // Default to home
+            // Update debug info
+            document.getElementById('debugInfo').innerHTML = `
+                Path: ${currentPath}<br>
+                Base: ${basePath}<br>
+                Mobile: ${isMobileDevice()}<br>
+                Screen: ${window.innerWidth}x${window.innerHeight}
+            `;
             
-            // Known routes mapping
+            // Route mapping for known pages
             const routes = {
                 'mobile': 'mobile.html',
                 'mobile.html': 'mobile.html',
@@ -129,11 +163,19 @@
             };
             
             // Extract the file/route name from current path
-            const pathParts = currentPath.split('/').filter(part => part);
+            let pathParts = currentPath.split('/').filter(part => part);
+            
+            // Remove base path parts for GitHub Pages
+            if (hostname.includes('github.io') && pathParts.length > 0 && !pathParts[0].includes('.html')) {
+                pathParts = pathParts.slice(1); // Remove repo name
+            }
+            
             const lastPart = pathParts[pathParts.length - 1];
+            console.log('Extracted route:', lastPart, 'from parts:', pathParts);
             
-            console.log('Last part:', lastPart);
+            let redirectTo = basePath; // Default to home
             
+            // Check if it's a known route
             if (lastPart && routes[lastPart]) {
                 redirectTo = basePath + routes[lastPart];
                 console.log('Found route mapping:', redirectTo);
@@ -142,11 +184,21 @@
                 redirectTo = basePath + lastPart;
                 console.log('Direct HTML file:', redirectTo);
             } else {
-                // Apply mobile routing logic for unknown paths
-                if (isMobile()) {
-                    const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-                    const hasPasses = localStorage.getItem('userPasses');
-                    
+                // Apply intelligent routing based on device and user state
+                console.log('Applying intelligent routing...');
+                
+                const isMobile = isMobileDevice();
+                const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+                const hasPasses = localStorage.getItem('userPasses');
+                
+                console.log('User state:', {
+                    isMobile: isMobile,
+                    isLoggedIn: isLoggedIn,
+                    hasPasses: !!hasPasses
+                });
+                
+                if (isMobile) {
+                    // Mobile routing logic
                     if (isLoggedIn || hasPasses) {
                         redirectTo = basePath + 'mobile.html';
                         console.log('Mobile user with passes -> mobile app');
@@ -155,6 +207,7 @@
                         console.log('Mobile user without passes -> mobile purchase');
                     }
                 } else {
+                    // Desktop users always go to index
                     redirectTo = basePath + 'index.html';
                     console.log('Desktop user -> index');
                 }
