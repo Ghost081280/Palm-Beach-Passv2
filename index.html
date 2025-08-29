@@ -5,49 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Palm Beach Pass - Your Gateway to Paradise</title>
     
-    <!-- IMPORTANT: Load device detector AFTER DOM content -->
-    <script>
-        // Inline critical device detection to run immediately
-        (function() {
-            function isMobilePhone() {
-                const userAgent = navigator.userAgent;
-                const screenWidth = window.innerWidth || window.screen?.width || 1024;
-                
-                return (
-                    (/Android/i.test(userAgent) && screenWidth < 768) ||
-                    (/iPhone/i.test(userAgent)) ||
-                    (/Windows Phone/i.test(userAgent)) ||
-                    (screenWidth < 768 && 'ontouchstart' in window)
-                ) && !(/iPad/i.test(userAgent));
-            }
-            
-            // Only redirect if we have a clear mobile signal and user data
-            function shouldRedirectMobile() {
-                if (!isMobilePhone()) return false;
-                
-                const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-                const hasPasses = localStorage.getItem('userPasses');
-                const hasRedirected = sessionStorage.getItem('mobile-redirected');
-                
-                // Prevent redirect loops
-                if (hasRedirected) return false;
-                
-                return isLoggedIn || hasPasses;
-            }
-            
-            // Store detection result for later use
-            window.palmBeachPassMobile = isMobilePhone();
-            
-            // Only redirect if we're certain about the mobile experience
-            if (shouldRedirectMobile()) {
-                sessionStorage.setItem('mobile-redirected', 'true');
-                const currentUrl = new URL(window.location);
-                const basePath = currentUrl.pathname.split('/').length > 2 ? `/${currentUrl.pathname.split('/')[1]}/` : '/';
-                window.location.href = basePath + 'mobile.html' + currentUrl.search;
-            }
-        })();
-    </script>
-    
     <style>
         * {
             margin: 0;
@@ -76,7 +33,7 @@
             color: var(--text-dark);
         }
 
-        /* Premium Navigation */
+        /* Premium Navigation - FIXED */
         .nav-header {
             background: var(--white);
             box-shadow: 0 2px 20px rgba(0,0,0,0.08);
@@ -101,6 +58,8 @@
             align-items: center;
             gap: 1rem;
             cursor: pointer;
+            text-decoration: none;
+            color: var(--text-dark);
         }
 
         .logo-icon {
@@ -126,10 +85,14 @@
             color: var(--palm-green);
         }
 
+        /* FIXED: Desktop Navigation */
         .nav-links {
             display: flex;
-            gap: 2rem;
             align-items: center;
+            gap: 2.5rem;
+            flex: 1;
+            justify-content: center;
+            margin: 0 2rem;
         }
 
         .nav-link {
@@ -138,6 +101,7 @@
             font-size: 0.95rem;
             transition: color 0.3s;
             cursor: pointer;
+            white-space: nowrap;
         }
 
         .nav-link:hover {
@@ -148,12 +112,19 @@
             display: flex;
             align-items: center;
             gap: 1rem;
+            flex-shrink: 0;
         }
 
         .cart-icon {
             position: relative;
             cursor: pointer;
             padding: 0.5rem;
+            border-radius: 50%;
+            transition: background 0.3s;
+        }
+
+        .cart-icon:hover {
+            background: var(--sand);
         }
 
         .cart-badge {
@@ -182,12 +153,89 @@
             font-size: 0.95rem;
             transition: all 0.3s;
             font-family: inherit;
+            white-space: nowrap;
         }
 
         .btn-login:hover {
             background: var(--ocean-blue);
             transform: translateY(-2px);
             box-shadow: var(--shadow);
+        }
+
+        /* Mobile Menu Toggle */
+        .mobile-menu-toggle {
+            display: none;
+            flex-direction: column;
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+
+        .mobile-menu-toggle span {
+            width: 25px;
+            height: 3px;
+            background: var(--text-dark);
+            margin: 2px 0;
+            transition: 0.3s;
+        }
+
+        /* Mobile Navigation */
+        .mobile-nav {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: rgba(0,0,0,0.8);
+            z-index: 2000;
+        }
+
+        .mobile-nav.active {
+            display: block;
+        }
+
+        .mobile-nav-content {
+            background: white;
+            height: 100%;
+            width: 80%;
+            max-width: 300px;
+            padding: 2rem;
+            transform: translateX(-100%);
+            transition: transform 0.3s;
+        }
+
+        .mobile-nav.active .mobile-nav-content {
+            transform: translateX(0);
+        }
+
+        .mobile-nav-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .mobile-nav-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .mobile-nav-links {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .mobile-nav-link {
+            text-decoration: none;
+            color: var(--text-dark);
+            font-size: 1.1rem;
+            padding: 1rem 0;
+            border-bottom: 1px solid #eee;
         }
 
         /* Hero Section */
@@ -506,7 +554,7 @@
             margin-top: 0.5rem;
         }
 
-        /* Map Section - Simplified for mobile compatibility */
+        /* Map Section */
         .attractions-header {
             position: relative;
             height: 500px;
@@ -525,7 +573,6 @@
             overflow: hidden;
         }
 
-        /* Mobile-optimized map */
         .map-view iframe {
             width: 100%;
             height: 100%;
@@ -533,53 +580,7 @@
             filter: grayscale(20%);
         }
 
-        /* Map Pins - Simplified for mobile */
-        .map-overlay-pins {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            pointer-events: none;
-            z-index: 10;
-        }
-
-        .map-marker {
-            position: absolute;
-            cursor: pointer;
-            transition: all 0.3s;
-            pointer-events: auto;
-        }
-
-        .map-marker:hover {
-            z-index: 20;
-            transform: scale(1.15);
-        }
-
-        .marker-icon {
-            width: 40px;
-            height: 40px;
-            background: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-            border: 3px solid white;
-            transition: all 0.3s;
-        }
-
-        .map-marker.active .marker-icon {
-            background: var(--coral);
-            width: 48px;
-            height: 48px;
-            font-size: 1.5rem;
-            box-shadow: 0 4px 12px rgba(255,107,107,0.4);
-            border-color: var(--coral);
-        }
-
-        /* Filter Bar - Mobile optimized */
+        /* Filter Bar */
         .filter-bar {
             background: white;
             border-bottom: 1px solid #e0e0e0;
@@ -644,7 +645,7 @@
             font-size: 0.95rem;
         }
 
-        /* Attractions Grid - Mobile responsive */
+        /* Attractions Grid */
         .attractions-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -902,12 +903,22 @@
             text-decoration: none;
         }
 
-        /* Mobile Responsive */
-        @media (max-width: 768px) {
+        /* Mobile Responsive - FIXED */
+        @media (max-width: 1024px) {
             .nav-links {
                 display: none;
             }
 
+            .mobile-menu-toggle {
+                display: flex;
+            }
+
+            .attractions-card.featured {
+                grid-column: span 1;
+            }
+        }
+
+        @media (max-width: 768px) {
             .hero h1 {
                 font-size: 2.5rem;
             }
@@ -934,10 +945,6 @@
 
             .attractions-grid {
                 grid-template-columns: 1fr;
-            }
-            
-            .attraction-card.featured {
-                grid-column: span 1;
             }
 
             .category-filters {
@@ -989,40 +996,29 @@
                 transform: translateX(0);
             }
         }
-
-        /* Mobile-first show/hide utility */
-        .mobile-only {
-            display: none;
-        }
-
-        .desktop-only {
-            display: block;
-        }
-
-        @media (max-width: 768px) {
-            .mobile-only {
-                display: block;
-            }
-            
-            .desktop-only {
-                display: none;
-            }
-        }
     </style>
 </head>
 <body>
     <!-- Navigation -->
     <nav class="nav-header">
         <div class="nav-content">
-            <div class="logo" onclick="scrollToTop()">
+            <a href="#" class="logo" onclick="scrollToTop()">
                 <div class="logo-icon">🌴</div>
                 <div class="logo-text">Palm Beach <span>Pass</span></div>
-            </div>
+            </a>
             
-            <div class="nav-links desktop-only">
+            <!-- Desktop Navigation -->
+            <div class="nav-links">
                 <a href="#passes" class="nav-link">Passes</a>
                 <a href="#attractions" class="nav-link">Attractions</a>
                 <a href="#how-it-works" class="nav-link">How It Works</a>
+            </div>
+            
+            <!-- Mobile Menu Toggle -->
+            <div class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+                <span></span>
+                <span></span>
+                <span></span>
             </div>
             
             <div class="user-menu">
@@ -1035,6 +1031,26 @@
         </div>
     </nav>
 
+    <!-- Mobile Navigation -->
+    <div class="mobile-nav" id="mobileNav">
+        <div class="mobile-nav-content">
+            <div class="mobile-nav-header">
+                <div class="logo">
+                    <div class="logo-icon" style="width: 40px; height: 40px; font-size: 1.2rem;">🌴</div>
+                    <div class="logo-text" style="font-size: 1.2rem;">Palm Beach <span>Pass</span></div>
+                </div>
+                <button class="mobile-nav-close" onclick="toggleMobileMenu()">×</button>
+            </div>
+            <div class="mobile-nav-links">
+                <a href="#passes" class="mobile-nav-link" onclick="navigateToSection('passes')">Passes</a>
+                <a href="#attractions" class="mobile-nav-link" onclick="navigateToSection('attractions')">Attractions</a>
+                <a href="#how-it-works" class="mobile-nav-link" onclick="navigateToSection('how-it-works')">How It Works</a>
+                <a href="customer-passes.html" class="mobile-nav-link">My Passes</a>
+                <a href="customer-account.html" class="mobile-nav-link">Account</a>
+            </div>
+        </div>
+    </div>
+
     <!-- Hero Section -->
     <section class="hero">
         <div class="hero-content">
@@ -1042,7 +1058,7 @@
             <p>One pass, endless adventures. Discover 180+ premium attractions, restaurants, and experiences across Palm Beach County.</p>
             <div class="hero-cta">
                 <button class="btn-primary" onclick="scrollToSection('passes')">Get Your Pass</button>
-                <button class="btn-secondary desktop-only" onclick="scrollToSection('attractions')">Explore Attractions</button>
+                <button class="btn-secondary" onclick="scrollToSection('attractions')">Explore Attractions</button>
             </div>
         </div>
     </section>
@@ -1193,8 +1209,8 @@
             </div>
         </div>
 
-        <!-- Map Section - Mobile optimized -->
-        <div class="attractions-header desktop-only">
+        <!-- Map Section - Desktop only -->
+        <div class="attractions-header" style="display: none;">
             <div class="map-container">
                 <div class="map-view">
                     <iframe 
@@ -1206,39 +1222,6 @@
                         loading="lazy"
                         referrerpolicy="no-referrer-when-downgrade">
                     </iframe>
-                    
-                    <!-- Map Pins -->
-                    <div class="map-overlay-pins">
-                        <!-- West Palm Beach area -->
-                        <div class="map-marker" style="top: 35%; left: 25%;" onclick="focusAttraction('lion')">
-                            <div class="marker-icon">🦁</div>
-                        </div>
-                        
-                        <!-- Central Palm Beach -->
-                        <div class="map-marker" style="top: 40%; left: 35%;" onclick="focusAttraction('norton')">
-                            <div class="marker-icon">🎨</div>
-                        </div>
-                        
-                        <!-- Boynton Beach inland -->
-                        <div class="map-marker active" style="top: 55%; left: 45%;" onclick="focusAttraction('boynton')">
-                            <div class="marker-icon">🤿</div>
-                        </div>
-                        
-                        <!-- Palm Beach Zoo area -->
-                        <div class="map-marker" style="top: 42%; left: 50%;" onclick="focusAttraction('zoo')">
-                            <div class="marker-icon">🐘</div>
-                        </div>
-                        
-                        <!-- Rapids Water Park - inland -->
-                        <div class="map-marker" style="top: 50%; left: 30%;" onclick="focusAttraction('rapids')">
-                            <div class="marker-icon">💦</div>
-                        </div>
-                        
-                        <!-- Seaquarium - coastal but on land -->
-                        <div class="map-marker" style="top: 60%; left: 40%;" onclick="focusAttraction('seaquarium')">
-                            <div class="marker-icon">🐠</div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -1484,12 +1467,39 @@
         let cart = [];
         let isLoggedIn = false;
         let currentUser = null;
+        let isMobileMenuOpen = false;
 
         // Check login status on load
         window.onload = function() {
             checkLoginStatus();
             updateCartBadge();
+            
+            // Show map on desktop only
+            if (window.innerWidth > 768) {
+                document.querySelector('.attractions-header').style.display = 'block';
+            }
         };
+
+        // Mobile menu functions
+        function toggleMobileMenu() {
+            const mobileNav = document.getElementById('mobileNav');
+            isMobileMenuOpen = !isMobileMenuOpen;
+            
+            if (isMobileMenuOpen) {
+                mobileNav.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            } else {
+                mobileNav.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        }
+
+        function navigateToSection(sectionId) {
+            toggleMobileMenu(); // Close menu
+            setTimeout(() => {
+                scrollToSection(sectionId);
+            }, 300);
+        }
 
         // Navigation functions
         function scrollToTop() {
@@ -1577,9 +1587,8 @@
                 return;
             }
             
-            // Check if mobile and redirect to mobile purchase if appropriate
-            if (window.palmBeachPassMobile) {
-                // Store pass selection
+            // Check if on mobile and redirect to mobile purchase if appropriate
+            if (window.innerWidth < 768) {
                 sessionStorage.setItem('selectedPass', passType);
                 window.location.href = 'mobile-purchase.html?pass=' + passType;
                 return;
@@ -1656,55 +1665,7 @@
             filterAttractions(category);
         }
 
-        function focusAttraction(attractionId) {
-            // Update active marker
-            document.querySelectorAll('.map-marker').forEach(marker => {
-                marker.classList.remove('active');
-            });
-            event.currentTarget.classList.add('active');
-            
-            // Find and highlight corresponding attraction card
-            const attractionNames = {
-                'lion': 'Lion Country Safari',
-                'norton': 'Norton Museum',
-                'boynton': 'Boynton Beach Dive Center',
-                'zoo': 'Palm Beach Zoo',
-                'rapids': 'Rapids Water Park',
-                'seaquarium': 'Seaquarium',
-                'flyboard': 'Flyboard South Florida',
-                'morikami': 'Morikami'
-            };
-            
-            const attractionName = attractionNames[attractionId];
-            if (attractionName) {
-                const cards = document.querySelectorAll('.attraction-card');
-                cards.forEach(card => {
-                    card.style.transform = '';
-                    card.style.boxShadow = '';
-                });
-                
-                // Find and highlight the matching card
-                const matchingCard = Array.from(cards).find(card => 
-                    card.querySelector('h3').textContent.includes(attractionName.split(' ')[0])
-                );
-                
-                if (matchingCard) {
-                    matchingCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    matchingCard.style.transform = 'scale(1.02)';
-                    matchingCard.style.boxShadow = '0 20px 60px rgba(255,107,107,0.3)';
-                    
-                    setTimeout(() => {
-                        matchingCard.style.transform = '';
-                        matchingCard.style.boxShadow = '';
-                    }, 2000);
-                }
-                
-                showMessage(`Selected: ${attractionName}`);
-            }
-        }
-
         function openAttraction(attractionId) {
-            // Enhanced attraction detail preview
             const attractionDetails = {
                 'lion-safari': {
                     name: 'Lion Country Safari',
@@ -1791,74 +1752,27 @@
             });
         });
 
-        // Enhanced interaction feedback
-        document.addEventListener('DOMContentLoaded', function() {
-            // Add subtle animation to attraction cards on scroll
-            const observerOptions = {
-                threshold: 0.1,
-                rootMargin: '0px 0px -50px 0px'
-            };
-
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.style.opacity = '1';
-                        entry.target.style.transform = 'translateY(0)';
-                    }
-                });
-            }, observerOptions);
-
-            // Observe all attraction cards
-            document.querySelectorAll('.attraction-card').forEach(card => {
-                card.style.opacity = '0';
-                card.style.transform = 'translateY(20px)';
-                card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-                observer.observe(card);
-            });
-
-            // Add click effects to buttons
-            document.querySelectorAll('button, .btn-primary, .btn-secondary').forEach(btn => {
-                btn.addEventListener('click', function(e) {
-                    // Create ripple effect
-                    const ripple = document.createElement('span');
-                    const rect = this.getBoundingClientRect();
-                    const size = Math.max(rect.width, rect.height);
-                    const x = e.clientX - rect.left - size / 2;
-                    const y = e.clientY - rect.top - size / 2;
-                    
-                    ripple.style.width = ripple.style.height = size + 'px';
-                    ripple.style.left = x + 'px';
-                    ripple.style.top = y + 'px';
-                    ripple.style.position = 'absolute';
-                    ripple.style.borderRadius = '50%';
-                    ripple.style.background = 'rgba(255,255,255,0.5)';
-                    ripple.style.transform = 'scale(0)';
-                    ripple.style.animation = 'ripple 0.6s linear';
-                    ripple.style.pointerEvents = 'none';
-                    
-                    this.style.position = 'relative';
-                    this.style.overflow = 'hidden';
-                    this.appendChild(ripple);
-                    
-                    setTimeout(() => ripple.remove(), 600);
-                });
-            });
+        // Window resize handler
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 1024 && isMobileMenuOpen) {
+                toggleMobileMenu();
+            }
+            
+            // Show/hide map based on screen size
+            const mapSection = document.querySelector('.attractions-header');
+            if (window.innerWidth > 768) {
+                mapSection.style.display = 'block';
+            } else {
+                mapSection.style.display = 'none';
+            }
         });
 
-        // Add CSS for ripple animation
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes ripple {
-                to {
-                    transform: scale(4);
-                    opacity: 0;
-                }
+        // Close mobile menu when clicking outside
+        document.getElementById('mobileNav').addEventListener('click', (e) => {
+            if (e.target.id === 'mobileNav') {
+                toggleMobileMenu();
             }
-        `;
-        document.head.appendChild(style);
+        });
     </script>
-
-    <!-- Load device detector after everything else -->
-    <script defer src="device-detector.js"></script>
 </body>
 </html>
