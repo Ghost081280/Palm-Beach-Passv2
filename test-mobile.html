@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Test - Palm Beach Pass</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #2D5016, #006B7D);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        h1 { font-size: 2rem; margin-bottom: 1rem; }
+        .success { 
+            background: #10B981; 
+            padding: 1rem 2rem; 
+            border-radius: 10px; 
+            margin: 1rem 0;
+            font-weight: bold;
+        }
+        .info {
+            background: rgba(0,0,0,0.3);
+            padding: 1rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+            font-family: monospace;
+            font-size: 0.9rem;
+            text-align: left;
+            max-width: 90%;
+        }
+        .links {
+            margin-top: 2rem;
+        }
+        .links a {
+            display: inline-block;
+            background: white;
+            color: #2D5016;
+            padding: 1rem 2rem;
+            margin: 0.5rem;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>🌴 Mobile Test Page</h1>
+    <div class="success">✅ SUCCESS! Mobile routing is working!</div>
+    
+    <div class="info">
+        <strong>Debug Info:</strong><br>
+        URL: <span id="url"></span><br>
+        User Agent: <span id="ua"></span><br>
+        Screen: <span id="screen"></span><br>
+        Time: <span id="time"></span>
+    </div>
+    
+    <div class="links">
+        <a href="mobile.html">Go to Mobile App</a>
+        <a href="mobile-purchase.html">Go to Purchase</a>
+        <a href="index.html">Back to Desktop</a>
+    </div>
+    
+    <script>
+        document.getElementById('url').textContent = window.location.href;
+        document.getElementById('ua').textContent = navigator.userAgent.substring(0, 50) + '...';
+        document.getElementById('screen').textContent = window.innerWidth + 'x' + window.innerHeight;
+        document.getElementById('time').textContent = new Date().toLocaleString();
+        
+        console.log('Mobile test page loaded successfully!');
+    </script>
+</body>
+</html>
