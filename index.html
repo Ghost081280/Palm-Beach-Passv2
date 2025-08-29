@@ -1517,41 +1517,116 @@
     </div>
 
     <script>
-        // Initialize app
+        // Initialize app - FIXED MOBILE DETECTION
         let cart = [];
         let isLoggedIn = false;
         let currentUser = null;
         let isMobileMenuOpen = false;
 
-        // Mobile Detection
-        function isMobile() {
-            return window.innerWidth < 768 && /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        // Enhanced Mobile Detection - FIXED
+        function isMobileDevice() {
+            const userAgent = navigator.userAgent;
+            const screenWidth = window.innerWidth || screen.width;
+            
+            console.log('Device detection:', {
+                userAgent: userAgent,
+                screenWidth: screenWidth,
+                isMobile: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent),
+                isSmallScreen: screenWidth < 768
+            });
+            
+            // Detect actual mobile devices, not just small screens
+            return (/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent) && screenWidth < 1024) ||
+                   (screenWidth < 600); // Very small screens are likely mobile
+        }
+
+        // Auto-redirect for mobile users - FIXED
+        function handleMobileRedirect() {
+            const isMobile = isMobileDevice();
+            const currentPath = window.location.pathname;
+            const currentSearch = window.location.search;
+            
+            console.log('Mobile redirect check:', {
+                isMobile: isMobile,
+                currentPath: currentPath,
+                isLoggedIn: localStorage.getItem('isLoggedIn') === 'true',
+                hasPasses: !!localStorage.getItem('userPasses')
+            });
+            
+            // Only redirect mobile users, and only from main pages
+            if (isMobile && (currentPath.endsWith('index.html') || currentPath.endsWith('/') || currentPath === '/')) {
+                
+                // Check if user has passes or is logged in
+                const hasPassesOrLogin = localStorage.getItem('isLoggedIn') === 'true' || 
+                                        localStorage.getItem('userPasses');
+                
+                if (hasPassesOrLogin) {
+                    console.log('Redirecting to mobile app...');
+                    window.location.href = './mobile.html' + currentSearch;
+                } else {
+                    console.log('Redirecting to mobile purchase...');
+                    window.location.href = './mobile-purchase.html' + currentSearch;
+                }
+                return true; // Indicate redirect happened
+            }
+            
+            return false; // No redirect
         }
 
         // Check login status on load
-        window.onload = function() {
+        window.addEventListener('load', function() {
+            console.log('Page loaded, checking mobile redirect...');
+            
+            // Try mobile redirect first
+            if (handleMobileRedirect()) {
+                return; // Don't continue with desktop initialization if redirecting
+            }
+            
+            // Desktop initialization
             checkLoginStatus();
             updateCartBadge();
             
-            // Show mobile banner for mobile users
-            if (isMobile() && !localStorage.getItem('hideMobileBanner')) {
+            // Show mobile banner for mobile users who stayed on desktop
+            if (isMobileDevice() && !localStorage.getItem('hideMobileBanner')) {
                 showMobileBanner();
             }
             
             // Show map on desktop only
             if (window.innerWidth > 768) {
-                document.querySelector('.attractions-header').style.display = 'block';
+                const mapSection = document.querySelector('.attractions-header');
+                if (mapSection) {
+                    mapSection.style.display = 'block';
+                }
             }
-        };
+        });
 
         function showMobileBanner() {
-            document.getElementById('mobileBanner').classList.add('show');
+            const banner = document.getElementById('mobileBanner');
+            if (banner) {
+                banner.classList.add('show');
+            }
         }
 
         function openMobileVersion() {
-            // On mobile, redirect to mobile version
-            if (isMobile()) {
-                window.location.href = './mobile-purchase.html';
+            console.log('Opening mobile version...');
+            
+            // Hide banner after interaction
+            localStorage.setItem('hideMobileBanner', 'true');
+            const banner = document.getElementById('mobileBanner');
+            if (banner) {
+                banner.classList.remove('show');
+            }
+            
+            // On mobile, redirect directly
+            if (isMobileDevice()) {
+                const hasPassesOrLogin = localStorage.getItem('isLoggedIn') === 'true' || 
+                                        localStorage.getItem('userPasses');
+                                        
+                if (hasPassesOrLogin) {
+                    window.location.href = './mobile.html';
+                } else {
+                    window.location.href = './mobile-purchase.html';
+                }
             } else {
                 // On desktop, open mobile demo in popup
                 const width = 375;
@@ -1565,10 +1640,6 @@
                     `width=${width},height=${height},left=${left},top=${top},resizable=no,scrollbars=no,toolbar=no,menubar=no,location=no,status=no`
                 );
             }
-            
-            // Hide banner after interaction
-            localStorage.setItem('hideMobileBanner', 'true');
-            document.getElementById('mobileBanner').classList.remove('show');
         }
 
         // Mobile menu functions
@@ -1646,6 +1717,13 @@
                 closeModal();
                 updateUIForLoggedInUser();
                 showMessage('Welcome back! You are now signed in.', 'success');
+                
+                // Check if mobile and redirect
+                if (isMobileDevice()) {
+                    setTimeout(() => {
+                        window.location.href = './mobile.html';
+                    }, 1500);
+                }
             } else {
                 showMessage('Invalid verification code. Please use 123456', 'error');
             }
@@ -1679,7 +1757,7 @@
             }
             
             // Check if on mobile and redirect appropriately
-            if (isMobile()) {
+            if (isMobileDevice()) {
                 sessionStorage.setItem('selectedPass', passType);
                 window.location.href = './mobile-purchase.html?pass=' + passType;
                 return;
@@ -1851,18 +1929,32 @@
             
             // Show/hide map based on screen size
             const mapSection = document.querySelector('.attractions-header');
-            if (window.innerWidth > 768) {
-                mapSection.style.display = 'block';
-            } else {
-                mapSection.style.display = 'none';
+            if (mapSection) {
+                if (window.innerWidth > 768) {
+                    mapSection.style.display = 'block';
+                } else {
+                    mapSection.style.display = 'none';
+                }
             }
         });
 
         // Close mobile menu when clicking outside
-        document.getElementById('mobileNav').addEventListener('click', (e) => {
-            if (e.target.id === 'mobileNav') {
-                toggleMobileMenu();
-            }
+        const mobileNav = document.getElementById('mobileNav');
+        if (mobileNav) {
+            mobileNav.addEventListener('click', (e) => {
+                if (e.target.id === 'mobileNav') {
+                    toggleMobileMenu();
+                }
+            });
+        }
+
+        // Debug logging
+        console.log('Palm Beach Pass - Desktop Version Loaded', {
+            userAgent: navigator.userAgent,
+            screenSize: { width: window.innerWidth, height: window.innerHeight },
+            isMobileDevice: isMobileDevice(),
+            currentURL: window.location.href,
+            hasLocalStorage: typeof(Storage) !== 'undefined'
         });
     </script>
 </body>
