@@ -56,11 +56,8 @@
                     console.error('LocalStorage error:', e);
                 }
                 
-                // Simple redirect - let's test with the test page first
-                var redirectUrl = 'test-mobile.html';
-                
-                // For production, use these:
-                // var redirectUrl = hasAccount ? 'mobile.html' : 'mobile-purchase.html';
+                // REDIRECT TO ACTUAL MOBILE PAGES
+                var redirectUrl = hasAccount ? 'mobile.html' : 'mobile-purchase.html';
                 
                 console.log('Redirecting to:', redirectUrl);
                 
@@ -598,6 +595,16 @@
             text-decoration: none;
         }
 
+        /* Mobile Alert Banner */
+        .mobile-alert {
+            background: var(--coral);
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            font-weight: 600;
+            display: none;
+        }
+
         /* Mobile Responsive */
         @media (max-width: 768px) {
             .hero h1 {
@@ -611,10 +618,20 @@
             .nav-links {
                 display: none;
             }
+
+            .mobile-alert {
+                display: block;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- Mobile Alert (only shows on mobile if JS fails) -->
+    <div class="mobile-alert">
+        If you see this on mobile, click here: 
+        <a href="mobile.html" style="color: white; text-decoration: underline;">Mobile Version</a>
+    </div>
+
     <!-- Debug Panel -->
     <div class="debug-panel" id="debugPanel">
         <strong>🔍 Debug Info:</strong><br>
