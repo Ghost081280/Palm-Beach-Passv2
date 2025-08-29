@@ -64,24 +64,33 @@
 <body>
     <div class="logo">🌴</div>
     <h1 class="title">Palm Beach Pass</h1>
-    <p class="message">Redirecting you to the correct page...</p>
+    <p class="message">Finding the right page for you...</p>
     <div class="spinner"></div>
     <a href="/" class="fallback-link" id="fallbackLink">Go to Home</a>
 
     <script>
-        // GitHub Pages SPA redirect script
+        // GitHub Pages SPA redirect script - FIXED
         (function() {
-            // Get the current path
             const currentPath = window.location.pathname;
             const currentSearch = window.location.search;
             const currentHash = window.location.hash;
             
+            console.log('404 Handler - Current path:', currentPath);
+            
             // Get base path for GitHub Pages
             function getBasePath() {
-                const pathParts = currentPath.split('/');
-                if (pathParts.length > 2 && pathParts[1]) {
-                    return `/${pathParts[1]}/`;
+                const hostname = window.location.hostname;
+                const pathname = window.location.pathname;
+                
+                // For GitHub Pages (username.github.io/repo-name)
+                if (hostname.includes('github.io')) {
+                    const pathParts = pathname.split('/').filter(part => part);
+                    if (pathParts.length > 0 && !pathParts[0].includes('.html')) {
+                        return `/${pathParts[0]}/`;
+                    }
                 }
+                
+                // For custom domains or local development
                 return '/';
             }
             
@@ -93,6 +102,7 @@
             }
             
             const basePath = getBasePath();
+            console.log('Base path:', basePath);
             
             // Update fallback link
             document.getElementById('fallbackLink').href = basePath;
@@ -100,50 +110,53 @@
             // Determine the correct redirect
             let redirectTo = basePath; // Default to home
             
-            // Check if this is a known route that should redirect to a specific page
+            // Known routes mapping
             const routes = {
-                '/mobile': 'mobile.html',
-                '/mobile.html': 'mobile.html',
-                '/mobile-purchase': 'mobile-purchase.html', 
-                '/mobile-purchase.html': 'mobile-purchase.html',
-                '/checkout': 'checkout.html',
-                '/checkout.html': 'checkout.html',
-                '/customer-passes': 'customer-passes.html',
-                '/customer-passes.html': 'customer-passes.html',
-                '/customer-account': 'customer-account.html',
-                '/customer-account.html': 'customer-account.html',
-                '/vendor-portal': 'vendor-portal.html',
-                '/vendor-portal.html': 'vendor-portal.html',
-                '/vendor-scanner': 'vendor-scanner.html',
-                '/vendor-scanner.html': 'vendor-scanner.html',
-                '/qr-system': 'qr-system.html',
-                '/qr-system.html': 'qr-system.html'
+                'mobile': 'mobile.html',
+                'mobile.html': 'mobile.html',
+                'mobile-purchase': 'mobile-purchase.html', 
+                'mobile-purchase.html': 'mobile-purchase.html',
+                'checkout': 'checkout.html',
+                'checkout.html': 'checkout.html',
+                'customer-passes': 'customer-passes.html',
+                'customer-passes.html': 'customer-passes.html',
+                'customer-account': 'customer-account.html',
+                'customer-account.html': 'customer-account.html',
+                'vendor-portal': 'vendor-portal.html',
+                'vendor-portal.html': 'vendor-portal.html',
+                'vendor-scanner': 'vendor-scanner.html',
+                'vendor-scanner.html': 'vendor-scanner.html'
             };
             
-            // Remove base path from current path to check against routes
-            const routePath = currentPath.replace(basePath, '/');
+            // Extract the file/route name from current path
+            const pathParts = currentPath.split('/').filter(part => part);
+            const lastPart = pathParts[pathParts.length - 1];
             
-            if (routes[routePath]) {
-                redirectTo = basePath + routes[routePath];
-            } else if (routePath.startsWith('/')) {
-                // Check if it's a file that might exist
-                const fileName = routePath.substring(1);
-                if (fileName && (fileName.endsWith('.html') || routes['/' + fileName])) {
-                    redirectTo = basePath + fileName;
-                } else {
-                    // Mobile routing logic for unknown paths
-                    if (isMobile()) {
-                        const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-                        const hasPasses = localStorage.getItem('userPasses');
-                        
-                        if (isLoggedIn || hasPasses) {
-                            redirectTo = basePath + 'mobile.html';
-                        } else {
-                            redirectTo = basePath + 'mobile-purchase.html';
-                        }
+            console.log('Last part:', lastPart);
+            
+            if (lastPart && routes[lastPart]) {
+                redirectTo = basePath + routes[lastPart];
+                console.log('Found route mapping:', redirectTo);
+            } else if (lastPart && lastPart.endsWith('.html')) {
+                // Direct HTML file access
+                redirectTo = basePath + lastPart;
+                console.log('Direct HTML file:', redirectTo);
+            } else {
+                // Apply mobile routing logic for unknown paths
+                if (isMobile()) {
+                    const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+                    const hasPasses = localStorage.getItem('userPasses');
+                    
+                    if (isLoggedIn || hasPasses) {
+                        redirectTo = basePath + 'mobile.html';
+                        console.log('Mobile user with passes -> mobile app');
                     } else {
-                        redirectTo = basePath + 'index.html';
+                        redirectTo = basePath + 'mobile-purchase.html';
+                        console.log('Mobile user without passes -> mobile purchase');
                     }
+                } else {
+                    redirectTo = basePath + 'index.html';
+                    console.log('Desktop user -> index');
                 }
             }
             
@@ -152,25 +165,16 @@
                 redirectTo += currentSearch + currentHash;
             }
             
-            // Perform the redirect after a short delay
-            console.log('404 Redirect:', {
-                from: currentPath,
-                to: redirectTo,
-                basePath: basePath,
-                isMobile: isMobile()
-            });
+            console.log('Final redirect URL:', redirectTo);
             
+            // Update message
+            document.querySelector('.message').textContent = 'Redirecting you to the correct page...';
+            
+            // Perform the redirect after a short delay
             setTimeout(() => {
+                console.log('Performing redirect to:', redirectTo);
                 window.location.replace(redirectTo);
             }, 1000);
-            
-            // Also update the message
-            setTimeout(() => {
-                const messageEl = document.querySelector('.message');
-                if (messageEl) {
-                    messageEl.textContent = 'Taking you to your destination...';
-                }
-            }, 500);
             
         })();
     </script>
