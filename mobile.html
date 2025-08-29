@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Palm Beach Pass</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#2D5016">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Palm Beach Pass">
+    
+    <!-- PWA Icons -->
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+    <link rel="manifest" href="/manifest.json">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --palm-green: #2D5016;
+            --ocean-blue: #006B7D;
+            --sand: #FAF3E3;
+            --coral: #FF6B6B;
+            --gold: #D4AF37;
+            --white: #FFFFFF;
+            --text-dark: #1A1A1A;
+            --text-light: #666666;
+            --success: #10B981;
+            --shadow: 0 4px 12px rgba(0,0,0,0.1);
+            --safe-area-top: env(safe-area-inset-top);
+            --safe-area-bottom: env(safe-area-inset-bottom);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8f9fa;
+            color: var(--text-dark);
+            overflow-x: hidden;
+            padding-top: var(--safe-area-top);
+            padding-bottom: var(--safe-area-bottom);
+        }
+
+        /* App Container */
+        .app-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Status Bar */
+        .status-bar {
+            height: 24px;
+            background: var(--palm-green);
+        }
+
+        /* App Header */
+        .app-header {
+            background: linear-gradient(135deg, var(--palm-green), var(--ocean-blue));
+            color: white;
+            padding: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow);
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .app-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .header-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .header-btn:active {
+            background: rgba(255,255,255,0.3);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 1rem;
+        }
+
+        /* My Passes Section */
+        .passes-section {
+            margin-bottom: 2rem;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--palm-green);
+        }
+
+        .view-all-btn {
+            color: var(--ocean-blue);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        /* Pass Cards */
+        .pass-cards {
+            display: flex;
+            gap: 1rem;
+            overflow-x: auto;
+            padding: 0.5rem 0;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .pass-card {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            min-width: 280px;
+            box-shadow: var(--shadow);
+            scroll-snap-align: start;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .pass-card:active {
+            transform: scale(0.98);
+        }
+
+        .pass-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, var(--palm-green), var(--ocean-blue));
+            opacity: 0.05;
+        }
+
+        .pass-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .pass-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .pass-info h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .pass-id {
+            font-family: monospace;
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+
+        .pass-status {
+            background: var(--success);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .pass-status.expired {
+            background: var(--coral);
+        }
+
+        .pass-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .detail-item {
+            text-align: center;
+        }
+
+        .detail-label {
+            font-size: 0.75rem;
+            color: var(--text-light);
+            margin-bottom: 0.25rem;
+        }
+
+        .detail-value {
+            font-weight: 600;
+            color: var(--palm-green);
+        }
+
+        .qr-preview {
+            background: white;
+            border: 2px solid #f0f0f0;
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .qr-code-mini {
+            width: 80px;
+            height: 80px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin: 0 auto 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+        }
+
+        .action-card {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .action-card:active {
+            transform: scale(0.98);
+        }
+
+        .action-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--palm-green), var(--ocean-blue));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .action-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--palm-green);
+        }
+
+        .action-desc {
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        /* Featured Attractions */
+        .featured-attractions {
+            margin-bottom: 2rem;
+        }
+
+        .attraction-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .attraction-item {
+            background: white;
+            border-radius: 12px;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .attraction-item:active {
+            transform: scale(0.98);
+        }
+
+        .attraction-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .attraction-info {
+            flex: 1;
+        }
+
+        .attraction-name {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .attraction-distance {
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+
+        .free-badge {
+            background: var(--success);
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 8px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            background: white;
+            border-top: 1px solid #e9ecef;
+            padding: 1rem;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.5rem;
+            position: sticky;
+            bottom: 0;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.5rem;
+            color: var(--text-light);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .nav-item.active {
+            color: var(--palm-green);
+        }
+
+        .nav-icon {
+            font-size: 1.5rem;
+        }
+
+        .nav-label {
+            font-size: 0.7rem;
+            font-weight: 500;
+        }
+
+        /* QR Modal */
+        .qr-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.9);
+            z-index: 1000;
+            padding: 2rem;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .qr-modal.active {
+            display: flex;
+        }
+
+        .qr-content {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            max-width: 350px;
+            width: 100%;
+        }
+
+        .qr-header {
+            background: linear-gradient(135deg, var(--palm-green), var(--ocean-blue));
+            color: white;
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+        }
+
+        .qr-code-large {
+            width: 250px;
+            height: 250px;
+            background: #f8f9fa;
+            border: 2px solid #dee2e6;
+            border-radius: 12px;
+            margin: 0 auto 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+        }
+
+        .brightness-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .brightness-btn {
+            background: var(--sand);
+            border: none;
+            padding: 0.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .close-btn {
+            background: var(--coral);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+        }
+
+        /* Notifications */
+        .notification {
+            position: fixed;
+            top: 2rem;
+            left: 1rem;
+            right: 1rem;
+            background: var(--palm-green);
+            color: white;
+            padding: 1rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            transform: translateY(-100px);
+            transition: transform 0.3s;
+            z-index: 2000;
+        }
+
+        .notification.show {
+            transform: translateY(0);
+        }
+
+        /* Loading States */
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-light);
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #e9ecef;
+            border-top: 4px solid var(--palm-green);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Pull to Refresh */
+        .pull-refresh {
+            text-align: center;
+            padding: 1rem;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        /* Haptic Feedback Simulation */
+        @keyframes vibrate {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-2px); }
+            75% { transform: translateX(2px); }
+        }
+
+        .vibrate {
+            animation: vibrate 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Status Bar -->
+        <div class="status-bar"></div>
+
+        <!-- App Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="app-title">
+                    🌴 Palm Beach Pass
+                </div>
+                <div class="header-actions">
+                    <button class="header-btn" onclick="showNotifications()">🔔</button>
+                    <button class="header-btn" onclick="showProfile()">👤</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Pull to Refresh -->
+        <div class="pull-refresh" id="pullRefresh" style="display: none;">
+            Pull down to refresh...
+        </div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- My Passes Section -->
+            <section class="passes-section">
+                <div class="section-header">
+                    <h2 class="section-title">My Active Passes</h2>
+                    <a href="#" class="view-all-btn">View All</a>
+                </div>
+                
+                <div class="pass-cards" id="passCards">
+                    <!-- Pass cards will be dynamically inserted -->
+                </div>
+            </section>
+
+            <!-- Quick Actions -->
+            <section class="quick-actions">
+                <div class="action-card" onclick="showQRScanner()">
+                    <div class="action-icon">📱</div>
+                    <div class="action-title">Scan to Enter</div>
+                    <div class="action-desc">Show your QR code</div>
+                </div>
+                
+                <div class="action-card" onclick="findAttractions()">
+                    <div class="action-icon">🗺️</div>
+                    <div class="action-title">Find Nearby</div>
+                    <div class="action-desc">Attractions near you</div>
+                </div>
+                
+                <div class="action-card" onclick="viewSavings()">
+                    <div class="action-icon">💰</div>
+                    <div class="action-title">Your Savings</div>
+                    <div class="action-desc">See how much saved</div>
+                </div>
+                
+                <div class="action-card" onclick="getHelp()">
+                    <div class="action-icon">💬</div>
+                    <div class="action-title">Get Help</div>
+                    <div class="action-desc">Support & FAQs</div>
+                </div>
+            </section>
+
+            <!-- Featured Attractions -->
+            <section class="featured-attractions">
+                <div class="section-header">
+                    <h2 class="section-title">Nearby Attractions</h2>
+                    <a href="#" class="view-all-btn">See All</a>
+                </div>
+                
+                <div class="attraction-list">
+                    <div class="attraction-item" onclick="viewAttraction('lion-safari')">
+                        <div class="attraction-icon" style="background: linear-gradient(135deg, #8B4513, #DEB887);">🦁</div>
+                        <div class="attraction-info">
+                            <div class="attraction-name">Lion Country Safari</div>
+                            <div class="attraction-distance">2.3 miles away</div>
+                        </div>
+                        <div class="free-badge">FREE</div>
+                    </div>
+                    
+                    <div class="attraction-item" onclick="viewAttraction('rapids')">
+                        <div class="attraction-icon" style="background: linear-gradient(135deg, #00BFFF, #1E90FF);">💦</div>
+                        <div class="attraction-info">
+                            <div class="attraction-name">Rapids Water Park</div>
+                            <div class="attraction-distance">1.8 miles away</div>
+                        </div>
+                        <div class="free-badge">FREE</div>
+                    </div>
+                    
+                    <div class="attraction-item" onclick="viewAttraction('norton')">
+                        <div class="attraction-icon" style="background: linear-gradient(135deg, #4B0082, #8A2BE2);">🎨</div>
+                        <div class="attraction-info">
+                            <div class="attraction-name">Norton Museum of Art</div>
+                            <div class="attraction-distance">3.1 miles away</div>
+                        </div>
+                        <div class="free-badge">FREE</div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+            <a href="#" class="nav-item active" onclick="switchTab('home')">
+                <div class="nav-icon">🏠</div>
+                <div class="nav-label">Home</div>
+            </a>
+            <a href="#" class="nav-item" onclick="switchTab('passes')">
+                <div class="nav-icon">🎫</div>
+                <div class="nav-label">Passes</div>
+            </a>
+            <a href="#" class="nav-item" onclick="switchTab('map')">
+                <div class="nav-icon">🗺️</div>
+                <div class="nav-label">Map</div>
+            </a>
+            <a href="#" class="nav-item" onclick="switchTab('account')">
+                <div class="nav-icon">⚙️</div>
+                <div class="nav-label">Account</div>
+            </a>
+        </nav>
+    </div>
+
+    <!-- QR Code Modal -->
+    <div class="qr-modal" id="qrModal">
+        <div class="qr-content">
+            <div class="qr-header">
+                <h3>3 Day Pass - Adult</h3>
+                <p style="opacity: 0.9;">PB001-3D-ADT-001</p>
+            </div>
+            
+            <div class="qr-code-large" id="qrCodeLarge">
+                📱
+            </div>
+            
+            <div class="brightness-controls">
+                <button class="brightness-btn" onclick="adjustBrightness('down')">🔅</button>
+                <span style="font-size: 0.9rem;">Screen Brightness</span>
+                <button class="brightness-btn" onclick="adjustBrightness('up')">🔆</button>
+            </div>
+            
+            <p style="font-size: 0.85rem; color: var(--text-light); margin-bottom: 1.5rem;">
+                Show this code to staff for instant entry
+            </p>
+            
+            <button class="close-btn" onclick="closeQR()">Close</button>
+        </div>
+    </div>
+
+    <!-- Service Worker Registration -->
+    <script>
+        // PWA Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('SW registered: ', registration);
+                    })
+                    .catch(registrationError => {
+                        console.log('SW registration failed: ', registrationError);
+                    });
+            });
+        }
+
+        // App State
+        let currentTab = 'home';
+        let userPasses = [];
+        let currentLocation = null;
+
+        // Initialize App
+        window.addEventListener('load', function() {
+            initializeApp();
+            loadPasses();
+            requestLocation();
+            setupPullToRefresh();
+        });
+
+        function initializeApp() {
+            // Check if launched as PWA
+            if (window.matchMedia('(display-mode: standalone)').matches) {
+                document.body.classList.add('pwa-mode');
+            }
+
+            // Prevent zoom on double tap
+            let lastTouchEnd = 0;
+            document.addEventListener('touchend', function (event) {
+                const now = (new Date()).getTime();
+                if (now - lastTouchEnd <= 300) {
+                    event.preventDefault();
+                }
+                lastTouchEnd = now;
+            }, false);
+
+            // Add to homescreen prompt
+            let deferredPrompt;
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+                showInstallPrompt();
+            });
+        }
+
+        function loadPasses() {
+            const savedPasses = localStorage.getItem('userPasses');
+            if (savedPasses) {
+                userPasses = JSON.parse(savedPasses);
+            } else {
+                // Demo data
+                userPasses = [{
+                    id: 'PB001-3D-ADT-001',
+                    type: '3 Day Pass',
+                    status: 'active',
+                    daysLeft: 2,
+                    visitedToday: 3,
+                    lastUsed: 'Lion Country Safari'
+                }];
+            }
+            renderPasses();
+        }
+
+        function renderPasses() {
+            const container = document.getElementById('passCards');
+            container.innerHTML = userPasses.map(pass => `
+                <div class="pass-card" onclick="showQR('${pass.id}')">
+                    <div class="pass-background"></div>
+                    <div class="pass-content">
+                        <div class="pass-header">
+                            <div class="pass-info">
+                                <h3>${pass.type}</h3>
+                                <div class="pass-id">${pass.id}</div>
+                            </div>
+                            <div class="pass-status ${pass.status}">${pass.status.toUpperCase()}</div>
+                        </div>
+                        
+                        <div class="pass-details">
+                            <div class="detail-item">
+                                <div class="detail-label">Days Left</div>
+                                <div class="detail-value">${pass.daysLeft}</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">Visited Today</div>
+                                <div class="detail-value">${pass.visitedToday}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="qr-preview">
+                            <div class="qr-code-mini">📱</div>
+                            <div style="font-size: 0.8rem; font-weight: 500;">Tap to show QR code</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function showQR(passId) {
+            // Haptic feedback
+            if (navigator.vibrate) {
+                navigator.vibrate(50);
+            }
+
+            // Show modal
+            document.getElementById('qrModal').classList.add('active');
+            
+            // Generate QR code (placeholder)
+            const qrContainer = document.getElementById('qrCodeLarge');
+            generateQRCode(qrContainer, passId);
+            
+            // Track usage
+            trackPassUsage(passId);
+            
+            // Auto-brightness
+            if ('screen' in navigator && 'brightness' in navigator.screen) {
+                navigator.screen.brightness = 1.0;
+            }
+        }
+
+        function closeQR() {
+            document.getElementById('qrModal').classList.remove('active');
+            
+            // Reset brightness
+            if ('screen' in navigator && 'brightness' in navigator.screen) {
+                navigator.screen.brightness = 0.8;
+            }
+        }
+
+        function generateQRCode(container, passId) {
+            // In production, use a proper QR code library
+            // For demo, create a visual QR pattern
+            container.innerHTML = '';
+            const canvas = document.createElement('canvas');
+            canvas.width = 250;
+            canvas.height = 250;
+            canvas.style.width = '100%';
+            canvas.style.height = '100%';
+            
+            const ctx = canvas.getContext('2d');
+            const moduleSize = 10;
+            const modules = 25;
+            
+            // Draw QR pattern
+            for (let row = 0; row < modules; row++) {
+                for (let col = 0; col < modules; col++) {
+                    if (Math.random() > 0.5 || 
+                        (row < 7 && col < 7) || 
+                        (row < 7 && col >= modules - 7) || 
+                        (row >= modules - 7 && col < 7)) {
+                        ctx.fillStyle = '#000';
+                        ctx.fillRect(col * moduleSize, row * moduleSize, moduleSize, moduleSize);
+                    }
+                }
+            }
+            
+            container.appendChild(canvas);
+        }
+
+        function adjustBrightness(direction) {
+            // Simulate brightness adjustment
+            const qrCode = document.getElementById('qrCodeLarge');
+            if (direction === 'up') {
+                qrCode.style.filter = 'brightness(1.2)';
+                showNotification('Screen brightness increased');
+            } else {
+                qrCode.style.filter = 'brightness(0.8)';
+                showNotification('Screen brightness decreased');
+            }
+            
+            if (navigator.vibrate) {
+                navigator.vibrate(30);
+            }
+        }
+
+        function switchTab(tab) {
+            currentTab = tab;
+            
+            // Update nav
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+            
+            // Haptic feedback
+            if (navigator.vibrate) {
+                navigator.vibrate(30);
+            }
+            
+            showNotification(`Switched to ${tab}`);
+        }
+
+        function showQRScanner() {
+            showNotification('Opening QR Scanner...');
+            // In production, implement QR scanner
+        }
+
+        function findAttractions() {
+            if (!currentLocation) {
+                requestLocation();
+            }
+            showNotification('Finding attractions near you...');
+        }
+
+        function viewSavings() {
+            showNotification('You\'ve saved $350 with your Palm Beach Pass!');
+        }
+
+        function getHelp() {
+            showNotification('Help center opened');
+        }
+
+        function viewAttraction(id) {
+            showNotification('Opening attraction details...');
+        }
+
+        function showNotifications() {
+            showNotification('You have 2 new attraction recommendations');
+        }
+
+        function showProfile() {
+            showNotification('Profile menu opened');
+        }
+
+        function requestLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        currentLocation = position.coords;
+                        showNotification('Location updated');
+                    },
+                    () => showNotification('Enable location for nearby attractions')
+                );
+            }
+        }
+
+        function setupPullToRefresh() {
+            let startY = 0;
+            let pullThreshold = 100;
+            
+            document.addEventListener('touchstart', (e) => {
+                startY = e.touches[0].pageY;
+            });
+            
+            document.addEventListener('touchmove', (e) => {
+                if (window.scrollY === 0) {
+                    const currentY = e.touches[0].pageY;
+                    const pullDistance = currentY - startY;
+                    
+                    if (pullDistance > 0 && pullDistance < pullThreshold) {
+                        document.getElementById('pullRefresh').style.display = 'block';
+                        document.getElementById('pullRefresh').textContent = 'Pull to refresh...';
+                    } else if (pullDistance >= pullThreshold) {
+                        document.getElementById('pullRefresh').textContent = 'Release to refresh';
+                    }
+                }
+            });
+            
+            document.addEventListener('touchend', (e) => {
+                const pullRefresh = document.getElementById('pullRefresh');
+                if (pullRefresh.style.display === 'block') {
+                    pullRefresh.style.display = 'none';
+                    if (pullRefresh.textContent === 'Release to refresh') {
+                        refreshData();
+                    }
+                }
+            });
+        }
+
+        function refreshData() {
+            showNotification('Refreshing passes...');
+            setTimeout(() => {
+                loadPasses();
+                showNotification('Passes updated!');
+            }, 1000);
+        }
+
+        function trackPassUsage(passId) {
+            // Track pass usage analytics
+            console.log('Pass used:', passId, new Date());
+        }
+
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.className = 'notification show';
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => notification.remove(), 300);
+            }, 2000);
+        }
+
+        function showInstallPrompt() {
+            // Show custom install prompt after user interaction
+            setTimeout(() => {
+                showNotification('Add Palm Beach Pass to your home screen for easy access!');
+            }, 3000);
+        }
+
+        // Handle app state changes
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                // App became visible, refresh data
+                refreshData();
+            }
+        });
+
+        // Handle network changes
+        window.addEventListener('online', () => {
+            showNotification('Connection restored');
+        });
+
+        window.addEventListener('offline', () => {
+            showNotification('Offline mode - passes still work!');
+        });
+    </script>
+</body>
+</html>
